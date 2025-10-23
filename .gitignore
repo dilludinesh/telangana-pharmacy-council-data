@@ -1,3 +1,46 @@
+# Project specific files
+*.html.bak
+*.backup
+
+# Large data files (if needed)
+# Uncomment if you want to ignore large HTML captures or data files
+# *.html
+# pharmacists_*.json
+
+# Scraping artifacts
+scraping_progress.json
+pharmacists_detailed.json
+
+# Demo files (if not needed in repo)
+# photo_demo.html
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
 # Logs
 *.log
 npm-debug.log*
@@ -79,32 +122,6 @@ jspm_packages/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# Temporary files
-*.tmp
-*.temp
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
 # Virtual environments
 venv/
