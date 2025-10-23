@@ -1,17 +1,17 @@
-# Telangana Pharmacy Council Data
+# Telangana Pharmacy Council Data Extraction
 
-Telangana Pharmacy Council - Extracted Pharmacist Registration Data (82,207 records)
+Telangana Pharmacy Council - Complete Pharmacist Registration Data (82,207 records)
 
 ## 📊 Overview
 
-This repository contains the complete extracted dataset of registered pharmacists from the Telangana Pharmacy Council website. The data was scraped and processed to provide a structured, machine-readable format for analysis and research purposes.
+This repository contains the complete extracted dataset of registered pharmacists from the Telangana Pharmacy Council website, along with a robust extraction system for obtaining detailed pharmacist information. The data provides comprehensive professional details for analysis and research purposes.
 
 ## 📋 Dataset Details
 
 - **Total Records:** 82,207 pharmacists
 - **Source:** [Telangana Pharmacy Council Website](https://www.pharmacycouncil.telangana.gov.in/pharmacy/srchpharmacisttotal)
 - **Extraction Date:** October 2025
-- **Format:** JSON, HTML source
+- **Format:** JSON (basic + detailed extraction capability)
 
 ## 🏥 Pharmacist Categories
 
@@ -24,7 +24,7 @@ This repository contains the complete extracted dataset of registered pharmacist
 | **QP** | 231 | Qualified Pharmacist |
 | **QC** | 29 | Quality Control |
 
-## 📁 Files
+## 📁 Repository Structure
 
 ### `pharmacists_data.json`
 Complete structured dataset in JSON format containing:
@@ -34,45 +34,62 @@ Complete structured dataset in JSON format containing:
 - Father's Name
 - Professional Category
 
-### `extractor.py`
-Python script used for data extraction with:
-- BeautifulSoup HTML parsing
-- Robust error handling
-- JSON export functionality
+**Size:** 14MB (82,207 records)
 
-### `page.html`
-Original HTML source from the pharmacy council website (66MB)
+### `responsible_scraper.py`
+Advanced extraction system with:
+- Detailed pharmacist information extraction
+- Rate limiting and anti-blocking measures
+- Progress tracking and resume capability
+- Base64 photo extraction
+- Professional error handling
+
+**Features:**
+- Extracts complete pharmacist profiles including photos
+- Handles all website data formats
+- Resume capability for interrupted extractions
+- Professional government data standards compliance
+
+### `README.md`
+This documentation file with project details and usage instructions.
+
+### `.gitignore`
+Git configuration for clean repository management.
 
 ## 🚀 Usage
 
-### Quick Analysis
+### Basic Data Analysis
 ```python
 import json
 
-# Load the data
+# Load the basic data
 with open('pharmacists_data.json', 'r') as f:
     data = json.load(f)
 
-# Example: Count by category
-categories = {}
-for pharmacist in data:
-    cat = pharmacist['category']
-    categories[cat] = categories.get(cat, 0) + 1
-
-print(f"BPharm pharmacists: {categories.get('BPharm', 0)}")
+print(f"Total pharmacists: {len(data)}")
+print(f"BPharm count: {len([p for p in data if p['category'] == 'BPharm'])}")
 ```
 
-### Running the Extractor
-```bash
-python3 extractor.py
+### Detailed Data Extraction
+```python
+# Run the main extraction system
+python3 responsible_scraper.py
 ```
+
+This will extract detailed information for each pharmacist including:
+- Complete contact information
+- Academic qualifications
+- Professional photos (base64 format)
+- Work/study details
+- All available website data
 
 ## 🔧 Technical Details
 
 - **Language:** Python 3
-- **Libraries:** BeautifulSoup, JSON, re
-- **Data Size:** ~575,000 lines of JSON
-- **HTML Source:** ~66MB
+- **Libraries:** BeautifulSoup, requests, json, re
+- **Data Size:** 14MB JSON (82,207 basic records)
+- **Extraction:** Advanced web scraping with rate limiting
+- **Output:** JSON format with complete pharmacist profiles
 
 ## 📈 Data Statistics
 
