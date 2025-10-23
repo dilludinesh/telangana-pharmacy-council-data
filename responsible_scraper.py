@@ -2,6 +2,7 @@ import requests
 import time
 import random
 import json
+import re
 from bs4 import BeautifulSoup
 import os
 from datetime import datetime
@@ -129,7 +130,17 @@ class ResponsibleScraper:
                             if i == len(headers) - 1:  # Last column is typically photo
                                 photo_img = cols[i].find('img')
                                 if photo_img:
-                                    final_value = photo_img.get('src', '')
+                                    # Check if it's base64 encoded (data:image format)
+                                    src_attr = photo_img.get('src', '')
+                                    if src_attr and 'data:image' in src_attr:
+                                        # Base64 encoded image - include as-is
+                                        final_value = src_attr
+                                    elif src_attr and re.search(r'[a-zA-Z0-9]', src_attr):
+                                        # Regular URL with alphanumeric content - include as-is
+                                        final_value = src_attr
+                                    else:
+                                        # Empty or no content
+                                        final_value = col_value
                                 else:
                                     photo_link = cols[i].find('a')
                                     if photo_link:
@@ -139,8 +150,7 @@ class ResponsibleScraper:
                             else:
                                 final_value = col_value
 
-                            # WORKAROUND: Check for alphanumeric content (including photo URLs)
-                            import re
+                            # WORKAROUND: Check for alphanumeric content (including base64)
                             if final_value and re.search(r'[a-zA-Z0-9]', final_value):
                                 # Has alphanumeric characters - include as-is
                                 detailed_info[header_text] = final_value
@@ -169,7 +179,6 @@ class ResponsibleScraper:
                             edu_value = edu_cols[i].text.strip()
 
                             # WORKAROUND: Check for alphanumeric content
-                            import re
                             if edu_value and re.search(r'[a-zA-Z0-9]', edu_value):
                                 # Has alphanumeric characters - include as-is
                                 detailed_info[header_text] = edu_value
@@ -198,7 +207,6 @@ class ResponsibleScraper:
                             addr_value = addr_cols[i].text.strip()
 
                             # WORKAROUND: Check for alphanumeric content
-                            import re
                             if addr_value and re.search(r'[a-zA-Z0-9]', addr_value):
                                 # Has alphanumeric characters - include as-is
                                 detailed_info[header_text] = addr_value
