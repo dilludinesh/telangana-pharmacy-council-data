@@ -50,6 +50,11 @@ Dataset reader with:
 - Resume capability for interrupted extractions
 - Professional government data standards compliance
 
+### `readmeupdater.py`
+Utility script that recalculates dataset statistics and refreshes `README.md` using
+the latest numbers. Accepts an optional `--dataset` argument to target alternate
+JSON files.
+
 ### `README.md`
 This documentation file with project details, usage instructions, and automation tips.
 
@@ -93,6 +98,8 @@ make update-readme
 # Run the interactive data extraction workflow
 make extract
 ```
+> Tip: Override the dataset on the fly with, for example,
+> `DATASET=custom.json make total`.
 
 This will extract detailed information for each pharmacist including:
 - Complete contact information

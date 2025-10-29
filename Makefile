@@ -8,7 +8,7 @@ total:
 	$(PYTHON) reader.py --dataset $(DATASET) --total-only
 
 update-readme:
-	$(PYTHON) update_readme.py --dataset $(DATASET)
+	$(PYTHON) readmeupdater.py --dataset $(DATASET)
 
 extract:
 	$(PYTHON) reader.py --dataset $(DATASET)
