@@ -3,6 +3,7 @@ import time
 import random
 import json
 import re
+import sys
 from bs4 import BeautifulSoup
 import os
 from datetime import datetime
@@ -81,6 +82,46 @@ class ResponsibleScraper:
         except requests.exceptions.RequestException as e:
             print(f"🔥 Request error: {e}")
             return None
+
+    def get_total_pharmacist_count(self):
+        """Fetch the total count of pharmacists listed on the council website"""
+        total_url = "https://www.pharmacycouncil.telangana.gov.in/pharmacy/srchpharmacisttotal"
+        print("🌐 Fetching total pharmacist listing page...")
+        response = self.make_request(total_url)
+        if not response:
+            print("⚠️  Unable to retrieve the total pharmacists page.")
+            return None
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        table = soup.find('table', attrs={'id': 'tablesorter-demo'})
+        if not table:
+            tables = soup.find_all('table')
+            table = tables[0] if tables else None
+
+        if not table:
+            print("❓ Could not locate the pharmacists table on the page.")
+            return None
+
+        data_rows = [row for row in table.find_all('tr') if row.find_all('td')]
+        if not data_rows:
+            print("❓ No pharmacist rows found in the table.")
+            return None
+
+        serial_numbers = []
+        for row in data_rows:
+            first_col = row.find_all('td')[0].get_text(strip=True)
+            if first_col.isdigit():
+                serial_numbers.append(int(first_col))
+
+        if serial_numbers:
+            unique_count = len(set(serial_numbers))
+            print(f"📊 Latest total (unique serial numbers): {unique_count}")
+            return unique_count
+
+        count = len(data_rows)
+        print(f"📊 Latest total (row count): {count}")
+        return count
 
     def extract_detailed_info(self, reg_number):
         """Extract detailed information for a single registration number"""
@@ -303,4 +344,12 @@ class ResponsibleScraper:
 
 if __name__ == "__main__":
     scraper = ResponsibleScraper()
-    scraper.run_with_safety_checks()
+
+    if len(sys.argv) > 1 and sys.argv[1] == "--total-only":
+        count = scraper.get_total_pharmacist_count()
+        if count is not None:
+            print(f"✅ Total pharmacists currently listed: {count}")
+        else:
+            sys.exit(1)
+    else:
+        scraper.run_with_safety_checks()
