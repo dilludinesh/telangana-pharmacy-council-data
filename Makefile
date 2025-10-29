@@ -2,7 +2,7 @@ PYTHON ?= python3
 
 DATASET ?= rx.json
 
-.PHONY: total update-readme extract sync
+.PHONY: total update-readme extract sync setup-email
 
 total:
 	$(PYTHON) reader.py --dataset $(DATASET) --total-only
@@ -15,3 +15,6 @@ extract:
 
 sync:
 	$(PYTHON) rxsync.py --dataset $(DATASET)
+
+setup-email:
+	$(PYTHON) setup_email.py

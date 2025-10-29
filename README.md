@@ -58,8 +58,9 @@ JSON files.
 ### `rxsync.py`
 Daily-friendly synchronization utility that fetches the current council listing,
 compares it against `rx.json`, and inserts any new or changed registrations.
-Supports `--dry-run`, `--no-backup`, `--no-archive`, audit logging, and notification
-stubs for Slack/email integrations.
+Supports `--dry-run`, `--no-backup`, `--no-archive`, audit logging, email alerts
+via SMTP (using `.env` or environment variables), and notification stubs for
+Slack integrations.
 
 ### `README.md`
 This documentation file with project details, usage instructions, and automation tips.
@@ -120,8 +121,25 @@ per day:
 
 Adjust the schedule, repository path, and logging location to suit your environment.
 
-You can also surface summaries in Slack/email by wiring a notifier into
-`rxsync.py`'s `notify_changes` function.
+To enable email alerts, provide SMTP credentials via CLI flags or environment
+variables (preferred for secrets):
+
+```bash
+# Install python-dotenv once if you want to use .env support
+pip install python-dotenv
+
+# Populate .env (copy from .env.example) or export variables directly
+export RXSYNC_EMAIL_TO=you@example.com
+export RXSYNC_EMAIL_FROM=bot@example.com
+export RXSYNC_SMTP_SERVER=smtp.example.com
+export RXSYNC_SMTP_PORT=587
+export RXSYNC_SMTP_USERNAME=bot@example.com
+export RXSYNC_SMTP_PASSWORD=super-secret
+
+make sync --notify
+```
+
+Set `RXSYNC_EMAIL_SUBJECT` (or `--email-subject`) to customize the email prefix.
 
 This will extract detailed information for each pharmacist including:
 - Complete contact information

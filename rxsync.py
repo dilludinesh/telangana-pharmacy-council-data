@@ -5,16 +5,35 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import smtplib
+from email.message import EmailMessage
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
 
 from reader import Reader
 
 DEFAULT_DATASET = Path("rx.json")
 DEFAULT_AUDIT_LOG = Path("sync_audit.log")
 DEFAULT_ARCHIVE_DIR = Path("archives")
+DEFAULT_SMTP_PORT = 587
 AUDIT_SAMPLE_LIMIT = 5
+
+EMAIL_ENV_VARS = {
+    "email_to": "RXSYNC_EMAIL_TO",
+    "email_from": "RXSYNC_EMAIL_FROM",
+    "smtp_server": "RXSYNC_SMTP_SERVER",
+    "smtp_port": "RXSYNC_SMTP_PORT",
+    "smtp_username": "RXSYNC_SMTP_USERNAME",
+    "smtp_password": "RXSYNC_SMTP_PASSWORD",
+    "email_subject": "RXSYNC_EMAIL_SUBJECT",
+}
 
 COMPARISON_FIELDS = [
     "serial_number",
@@ -63,6 +82,35 @@ def parse_args() -> argparse.Namespace:
         "--notify",
         action="store_true",
         help="Output a notification stub when changes are detected",
+    )
+    parser.add_argument(
+        "--email-to",
+        help="Email recipient (or set RXSYNC_EMAIL_TO)",
+    )
+    parser.add_argument(
+        "--email-from",
+        help="Sender email address (or set RXSYNC_EMAIL_FROM)",
+    )
+    parser.add_argument(
+        "--smtp-server",
+        help="SMTP server host (or set RXSYNC_SMTP_SERVER)",
+    )
+    parser.add_argument(
+        "--smtp-port",
+        type=int,
+        help="SMTP server port (default 587 or RXSYNC_SMTP_PORT)",
+    )
+    parser.add_argument(
+        "--smtp-username",
+        help="SMTP username (or set RXSYNC_SMTP_USERNAME)",
+    )
+    parser.add_argument(
+        "--smtp-password",
+        help="SMTP password (prefer using RXSYNC_SMTP_PASSWORD env)",
+    )
+    parser.add_argument(
+        "--email-subject",
+        help="Custom email subject (or set RXSYNC_EMAIL_SUBJECT)",
     )
     return parser.parse_args()
 
@@ -159,24 +207,108 @@ def archive_dataset(archive_dir: Path, records: List[Dict]) -> Path:
     return archive_path
 
 
-def notify_changes(entry: Dict) -> None:
-    print("🔔 Notification stub — integrate with Slack, email, or another service here.")
-    print("    Summary:")
-    print(
+def build_email_config(args) -> Optional[Dict[str, object]]:
+    def get_value(key: str, arg_value, cast=None):
+        env_value = os.getenv(EMAIL_ENV_VARS[key])
+        value = arg_value if arg_value is not None else env_value
+        if value is None or cast is None:
+            return value
+        try:
+            return cast(value)
+        except ValueError:
+            print(f"⚠️  Invalid value for {EMAIL_ENV_VARS[key]}: {value}")
+            return None
+
+    email_to = get_value("email_to", args.email_to)
+    email_from = get_value("email_from", args.email_from)
+    smtp_server = get_value("smtp_server", args.smtp_server)
+    smtp_port = get_value("smtp_port", args.smtp_port, int)
+    smtp_username = get_value("smtp_username", args.smtp_username)
+    smtp_password = get_value("smtp_password", args.smtp_password)
+    email_subject = get_value("email_subject", args.email_subject)
+
+    provided = [email_to, email_from, smtp_server, smtp_username, smtp_password]
+    if not any(provided):
+        return None
+
+    missing = [
+        name
+        for name, value in {
+            "recipient": email_to,
+            "sender": email_from,
+            "SMTP server": smtp_server,
+            "SMTP username": smtp_username,
+            "SMTP password": smtp_password,
+        }.items()
+        if not value
+    ]
+    if missing:
+        print(
+            "⚠️  Email notifications partially configured but missing: "
+            + ", ".join(missing)
+        )
+        return None
+
+    return {
+        "email_to": email_to,
+        "email_from": email_from,
+        "smtp_server": smtp_server,
+        "smtp_port": smtp_port or DEFAULT_SMTP_PORT,
+        "smtp_username": smtp_username,
+        "smtp_password": smtp_password,
+        "email_subject": email_subject,
+    }
+
+
+def send_email_notification(entry: Dict, summary: str, config: Dict[str, object]) -> None:
+    subject_prefix = config.get("email_subject") or "Pharmacist dataset update"
+    subject = (
+        f"{subject_prefix}: {entry['new_count']} new, {entry['changed_count']} updated"
+    )
+
+    message = EmailMessage()
+    message["From"] = config["email_from"]
+    message["To"] = config["email_to"]
+    message["Subject"] = subject
+    message.set_content(summary)
+
+    try:
+        with smtplib.SMTP(config["smtp_server"], config["smtp_port"]) as server:
+            server.starttls()
+            server.login(config["smtp_username"], config["smtp_password"])
+            server.send_message(message)
+        print(f"📧 Email notification sent to {config['email_to']}")
+    except Exception as exc:
+        print(f"⚠️  Failed to send email notification: {exc}")
+
+
+def notify_changes(entry: Dict, email_config: Optional[Dict[str, object]]) -> None:
+    summary_lines = [
+        "🔔 Notification summary:",
         f"    - New registrations: {entry['new_count']}"
-        f" (sample: {', '.join(entry['new_registrations']) or 'none'})"
-    )
-    print(
+        f" (sample: {', '.join(entry['new_registrations']) or 'none'})",
         f"    - Updated registrations: {entry['changed_count']}"
-        f" (sample: {', '.join(entry['changed_registrations']) or 'none'})"
-    )
+        f" (sample: {', '.join(entry['changed_registrations']) or 'none'})",
+    ]
+    summary = "\n".join(summary_lines)
+
+    if email_config and (entry["new_count"] or entry["changed_count"]):
+        send_email_notification(entry, summary, email_config)
+    elif email_config:
+        print("🔕 Email notification skipped (no new or updated registrations).")
+
+    if not email_config:
+        print(summary)
 
 
 def main() -> None:
     args = parse_args()
+    if load_dotenv is not None:
+        load_dotenv()
     dataset_path = Path(args.dataset)
     audit_log_path = Path(args.audit_log)
     archive_dir = Path(args.archive_dir)
+    email_config = build_email_config(args)
 
     if not dataset_path.exists():
         raise FileNotFoundError(f"Dataset not found: {dataset_path}")
@@ -194,14 +326,15 @@ def main() -> None:
 
     if not new_records and not changed_records:
         print("✅ Dataset already up-to-date. No changes needed.")
-        if args.notify:
+        if args.notify or email_config:
             notify_changes(
                 {
                     "new_count": 0,
                     "changed_count": 0,
                     "new_registrations": [],
                     "changed_registrations": [],
-                }
+                },
+                email_config,
             )
         return
 
@@ -221,8 +354,8 @@ def main() -> None:
         ],
     }
 
-    if args.notify:
-        notify_changes(audit_entry)
+    if args.notify or email_config:
+        notify_changes(audit_entry, email_config)
 
     if args.dry_run:
         print("📝 Dry-run mode: no files were written.")

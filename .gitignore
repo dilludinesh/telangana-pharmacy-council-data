@@ -1,3 +1,4 @@
+.env
 # Project specific files
 *.html.bak
 *.backup
