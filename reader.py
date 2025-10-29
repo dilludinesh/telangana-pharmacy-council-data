@@ -125,29 +125,14 @@ class Reader:
         print(f"📊 Latest total (row count): {count}")
         return count
 
-    def fetch_basic_records(self):
-        """Retrieve the current basic pharmacist listing from the council website"""
-        total_url = "https://www.pharmacycouncil.telangana.gov.in/pharmacy/srchpharmacisttotal"
-        print("🌐 Fetching pharmacist listing for sync...")
-        response = self.make_request(total_url)
-        if not response:
-            print("⚠️  Unable to retrieve the total pharmacists page.")
-            return []
-
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        table = soup.find('table', attrs={'id': 'tablesorter-demo'})
-        if not table:
-            tables = soup.find_all('table')
-            table = tables[0] if tables else None
-
-        if not table:
-            print("❓ Could not locate the pharmacists table on the page.")
+    @staticmethod
+    def parse_basic_table(table):
+        """Convert a BeautifulSoup table into structured pharmacist records."""
+        if table is None:
             return []
 
         rows = table.find_all('tr')
         if not rows:
-            print("❓ No pharmacist rows found in the table.")
             return []
 
         records = []
@@ -171,6 +156,29 @@ class Reader:
             }
             records.append(record)
 
+        return records
+
+    def fetch_basic_records(self):
+        """Retrieve the current basic pharmacist listing from the council website"""
+        total_url = "https://www.pharmacycouncil.telangana.gov.in/pharmacy/srchpharmacisttotal"
+        print("🌐 Fetching pharmacist listing for sync...")
+        response = self.make_request(total_url)
+        if not response:
+            print("⚠️  Unable to retrieve the total pharmacists page.")
+            return []
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        table = soup.find('table', attrs={'id': 'tablesorter-demo'})
+        if not table:
+            tables = soup.find_all('table')
+            table = tables[0] if tables else None
+
+        if not table:
+            print("❓ Could not locate the pharmacists table on the page.")
+            return []
+
+        records = self.parse_basic_table(table)
         print(f"📥 Retrieved {len(records)} basic records from the council website")
         return records
 

@@ -12,6 +12,9 @@ from typing import Dict, List, Tuple
 from reader import Reader
 
 DEFAULT_DATASET = Path("rx.json")
+DEFAULT_AUDIT_LOG = Path("sync_audit.log")
+DEFAULT_ARCHIVE_DIR = Path("archives")
+AUDIT_SAMPLE_LIMIT = 5
 
 COMPARISON_FIELDS = [
     "serial_number",
@@ -40,6 +43,26 @@ def parse_args() -> argparse.Namespace:
         "--no-backup",
         action="store_true",
         help="Do not create a timestamped backup before writing updates",
+    )
+    parser.add_argument(
+        "--no-archive",
+        action="store_true",
+        help="Skip archiving the full dataset snapshot after a successful sync",
+    )
+    parser.add_argument(
+        "--audit-log",
+        default=str(DEFAULT_AUDIT_LOG),
+        help="Path to append audit entries (default: sync_audit.log)",
+    )
+    parser.add_argument(
+        "--archive-dir",
+        default=str(DEFAULT_ARCHIVE_DIR),
+        help="Directory for archived dataset snapshots (default: archives)",
+    )
+    parser.add_argument(
+        "--notify",
+        action="store_true",
+        help="Output a notification stub when changes are detected",
     )
     return parser.parse_args()
 
@@ -98,9 +121,62 @@ def write_dataset(path: Path, records: List[Dict]) -> None:
         f.write("\n")
 
 
+def append_audit_entry(
+    log_path: Path,
+    dataset_path: Path,
+    new_records: List[Dict],
+    changed_records: List[Dict],
+) -> Dict:
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    entry = {
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "dataset": str(dataset_path),
+        "new_count": len(new_records),
+        "changed_count": len(changed_records),
+        "new_registrations": [
+            record.get("registration_number") for record in new_records[:AUDIT_SAMPLE_LIMIT]
+        ],
+        "changed_registrations": [
+            record.get("registration_number")
+            for record in changed_records[:AUDIT_SAMPLE_LIMIT]
+        ],
+    }
+
+    with log_path.open("a", encoding="utf-8") as log_file:
+        json.dump(entry, log_file)
+        log_file.write("\n")
+
+    return entry
+
+
+def archive_dataset(archive_dir: Path, records: List[Dict]) -> Path:
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    archive_path = archive_dir / f"rx_snapshot_{timestamp}.json"
+    with archive_path.open("w", encoding="utf-8") as archive_file:
+        json.dump(records, archive_file)
+        archive_file.write("\n")
+    return archive_path
+
+
+def notify_changes(entry: Dict) -> None:
+    print("🔔 Notification stub — integrate with Slack, email, or another service here.")
+    print("    Summary:")
+    print(
+        f"    - New registrations: {entry['new_count']}"
+        f" (sample: {', '.join(entry['new_registrations']) or 'none'})"
+    )
+    print(
+        f"    - Updated registrations: {entry['changed_count']}"
+        f" (sample: {', '.join(entry['changed_registrations']) or 'none'})"
+    )
+
+
 def main() -> None:
     args = parse_args()
     dataset_path = Path(args.dataset)
+    audit_log_path = Path(args.audit_log)
+    archive_dir = Path(args.archive_dir)
 
     if not dataset_path.exists():
         raise FileNotFoundError(f"Dataset not found: {dataset_path}")
@@ -118,9 +194,35 @@ def main() -> None:
 
     if not new_records and not changed_records:
         print("✅ Dataset already up-to-date. No changes needed.")
+        if args.notify:
+            notify_changes(
+                {
+                    "new_count": 0,
+                    "changed_count": 0,
+                    "new_registrations": [],
+                    "changed_registrations": [],
+                }
+            )
         return
 
     print(f"✨ Found {len(new_records)} new registrations and {len(changed_records)} updated entries.")
+
+    audit_entry = {
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "dataset": str(dataset_path),
+        "new_count": len(new_records),
+        "changed_count": len(changed_records),
+        "new_registrations": [
+            record.get("registration_number") for record in new_records[:AUDIT_SAMPLE_LIMIT]
+        ],
+        "changed_registrations": [
+            record.get("registration_number")
+            for record in changed_records[:AUDIT_SAMPLE_LIMIT]
+        ],
+    }
+
+    if args.notify:
+        notify_changes(audit_entry)
 
     if args.dry_run:
         print("📝 Dry-run mode: no files were written.")
@@ -132,6 +234,13 @@ def main() -> None:
 
     write_dataset(dataset_path, merged_records)
     print(f"✅ Dataset updated at {dataset_path}")
+
+    append_audit_entry(audit_log_path, dataset_path, new_records, changed_records)
+    print(f"🗒️  Audit entry appended to {audit_log_path}")
+
+    if not args.no_archive:
+        archive_path = archive_dataset(archive_dir, merged_records)
+        print(f"🗃️  Snapshot archived at {archive_path}")
 
 
 if __name__ == "__main__":

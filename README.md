@@ -58,7 +58,8 @@ JSON files.
 ### `rxsync.py`
 Daily-friendly synchronization utility that fetches the current council listing,
 compares it against `rx.json`, and inserts any new or changed registrations.
-Supports `--dry-run` and `--no-backup` modes.
+Supports `--dry-run`, `--no-backup`, `--no-archive`, audit logging, and notification
+stubs for Slack/email integrations.
 
 ### `README.md`
 This documentation file with project details, usage instructions, and automation tips.
@@ -118,6 +119,9 @@ per day:
 ```
 
 Adjust the schedule, repository path, and logging location to suit your environment.
+
+You can also surface summaries in Slack/email by wiring a notifier into
+`rxsync.py`'s `notify_changes` function.
 
 This will extract detailed information for each pharmacist including:
 - Complete contact information
