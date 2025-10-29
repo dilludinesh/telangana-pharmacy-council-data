@@ -55,6 +55,11 @@ Utility script that recalculates dataset statistics and refreshes `README.md` us
 the latest numbers. Accepts an optional `--dataset` argument to target alternate
 JSON files.
 
+### `rxsync.py`
+Daily-friendly synchronization utility that fetches the current council listing,
+compares it against `rx.json`, and inserts any new or changed registrations.
+Supports `--dry-run` and `--no-backup` modes.
+
 ### `README.md`
 This documentation file with project details, usage instructions, and automation tips.
 
@@ -97,9 +102,22 @@ make update-readme
 
 # Run the interactive data extraction workflow
 make extract
+
+# Fetch latest council listing and merge into rx.json
+make sync
 ```
 > Tip: Override the dataset on the fly with, for example,
 > `DATASET=custom.json make total`.
+
+#### Scheduling the sync
+Add an entry to your cron configuration (or any job scheduler) to run the sync once
+per day:
+
+```
+0 6 * * * cd /path/to/tgpc && make sync >> /path/to/tgpc/sync.log 2>&1
+```
+
+Adjust the schedule, repository path, and logging location to suit your environment.
 
 This will extract detailed information for each pharmacist including:
 - Complete contact information
