@@ -48,8 +48,8 @@ class ResponsibleScraper:
 
     def load_existing_data(self):
         """Load existing basic pharmacist data"""
-        if os.path.exists('pharmacists_data.json'):
-            with open('pharmacists_data.json', 'r') as f:
+        if os.path.exists('rx.json'):
+            with open('rx.json', 'r') as f:
                 return json.load(f)
         return []
 

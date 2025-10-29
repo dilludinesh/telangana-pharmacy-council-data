@@ -1,6 +1,6 @@
 # Telangana Pharmacy Council Data Extraction
 
-Telangana Pharmacy Council - Complete Pharmacist Registration Data (82,207 records)
+Telangana Pharmacy Council - Complete Pharmacist Registration Data (82,488 records)
 
 ## 📊 Overview
 
@@ -8,7 +8,7 @@ This repository contains the complete extracted dataset of registered pharmacist
 
 ## 📋 Dataset Details
 
-- **Total Records:** 82,207 pharmacists
+- **Total Records:** 82,488 pharmacists
 - **Source:** [Telangana Pharmacy Council Website](https://www.pharmacycouncil.telangana.gov.in/pharmacy/srchpharmacisttotal)
 - **Extraction Date:** October 2025
 - **Format:** JSON (basic + detailed extraction capability)
@@ -17,16 +17,16 @@ This repository contains the complete extracted dataset of registered pharmacist
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **BPharm** | 57,187 | Bachelor of Pharmacy |
-| **DPharm** | 16,084 | Diploma in Pharmacy |
-| **PharmD** | 6,323 | Doctor of Pharmacy |
-| **MPharm** | 2,353 | Master of Pharmacy |
+| **BPharm** | 57,413 | Bachelor of Pharmacy |
+| **DPharm** | 16,109 | Diploma in Pharmacy |
+| **PharmD** | 6,352 | Doctor of Pharmacy |
+| **MPharm** | 2,354 | Master of Pharmacy |
 | **QP** | 231 | Qualified Pharmacist |
 | **QC** | 29 | Quality Control |
 
 ## 📁 Repository Structure
 
-### `pharmacists_data.json`
+### `rx.json`
 Complete structured dataset in JSON format containing:
 - Serial Number
 - Registration Number (TS format)
@@ -34,7 +34,7 @@ Complete structured dataset in JSON format containing:
 - Father's Name
 - Professional Category
 
-**Size:** 14MB (82,207 records)
+**Size:** 13.39 MB (82,488 records)
 
 ### `responsible_scraper.py`
 Advanced extraction system with:
@@ -63,7 +63,7 @@ Git configuration for clean repository management.
 import json
 
 # Load the basic data
-with open('pharmacists_data.json', 'r') as f:
+with open('rx.json', 'r') as f:
     data = json.load(f)
 
 print(f"Total pharmacists: {len(data)}")
@@ -87,14 +87,14 @@ This will extract detailed information for each pharmacist including:
 
 - **Language:** Python 3
 - **Libraries:** BeautifulSoup, requests, json, re
-- **Data Size:** 14MB JSON (82,207 basic records)
+- **Data Size:** 13.39 MB JSON (82,488 basic records)
 - **Extraction:** Advanced web scraping with rate limiting
 - **Output:** JSON format with complete pharmacist profiles
 
 ## 📈 Data Statistics
 
-- **Registration Numbers:** TS000001 - TS268847 (with gaps)
-- **Name Variations:** 80,000+ unique names
+- **Registration Numbers:** TG061005 - TSDR004746 (with gaps)
+- **Name Variations:** 76,982 unique names
 - **Geographic Coverage:** Telangana state, India
 - **Data Completeness:** 100% (all available records)
 
