@@ -36,8 +36,8 @@ Complete structured dataset in JSON format containing:
 
 **Size:** 13.39 MB (82,488 records)
 
-### `responsible_scraper.py`
-Advanced extraction system with:
+### `reader.py`
+Dataset reader with:
 - Detailed pharmacist information extraction
 - Rate limiting and anti-blocking measures
 - Progress tracking and resume capability
@@ -51,7 +51,7 @@ Advanced extraction system with:
 - Professional government data standards compliance
 
 ### `README.md`
-This documentation file with project details and usage instructions.
+This documentation file with project details, usage instructions, and automation tips.
 
 ### `.gitignore`
 Git configuration for clean repository management.
@@ -71,9 +71,27 @@ print(f"BPharm count: {len([p for p in data if p['category'] == 'BPharm'])}")
 ```
 
 ### Detailed Data Extraction
-```python
-# Run the main extraction system
-python3 responsible_scraper.py
+```bash
+# Run the main extraction system (uses rx.json by default)
+python3 reader.py
+
+# Use a different dataset file
+python3 reader.py --dataset custom.json
+
+# Fetch only the latest total pharmacist count
+python3 reader.py --total-only
+```
+
+### Makefile Shortcuts
+```bash
+# Display the current total count
+make total
+
+# Regenerate README statistics from the dataset
+make update-readme
+
+# Run the interactive data extraction workflow
+make extract
 ```
 
 This will extract detailed information for each pharmacist including:

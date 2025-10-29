@@ -3,14 +3,15 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Iterable, Tuple
+from typing import Dict, Iterable
 
-DATA_PATH = Path("rx.json")
+DEFAULT_DATASET = Path("rx.json")
 README_PATH = Path("README.md")
 
 CATEGORY_DESCRIPTIONS: Dict[str, str] = {
@@ -33,11 +34,11 @@ def format_size_megabytes(size_in_bytes: int) -> str:
     return f"{megabytes:.2f}".rstrip("0").rstrip(".")
 
 
-def compute_stats() -> Dict[str, object]:
-    if not DATA_PATH.exists():
-        raise FileNotFoundError(f"Dataset file not found: {DATA_PATH}")
+def compute_stats(dataset_path: Path) -> Dict[str, object]:
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"Dataset file not found: {dataset_path}")
 
-    with DATA_PATH.open("r", encoding="utf-8") as f:
+    with dataset_path.open("r", encoding="utf-8") as f:
         records = json.load(f)
 
     total_records = len(records)
@@ -64,7 +65,7 @@ def compute_stats() -> Dict[str, object]:
         if isinstance(record.get("name"), str) and record.get("name")
     }
 
-    dataset_stats = DATA_PATH.stat()
+    dataset_stats = dataset_path.stat()
     size_mb = format_size_megabytes(dataset_stats.st_size)
     extracted_on = datetime.fromtimestamp(dataset_stats.st_mtime).strftime("%B %Y")
 
@@ -182,8 +183,22 @@ def update_readme_contents(readme: str, stats: Dict[str, object]) -> str:
     return readme
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Refresh README statistics from the pharmacist dataset"
+    )
+    parser.add_argument(
+        "--dataset",
+        default=str(DEFAULT_DATASET),
+        help="Path to the dataset JSON file (default: rx.json)",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
-    stats = compute_stats()
+    args = parse_args()
+    dataset_path = Path(args.dataset)
+    stats = compute_stats(dataset_path)
     original = README_PATH.read_text(encoding="utf-8")
     updated = update_readme_contents(original, stats)
 
