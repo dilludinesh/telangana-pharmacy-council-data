@@ -447,7 +447,7 @@ class Reader:
             print(f"📊 Check {self.enhanced_data_file} for results")
             print(f"📈 Check {self.progress_file} for progress details")
         except Exception as e:
-            print(f"🔥 Unexpected fatal error: {e}\nCheck tgpc_debug.log for details.")
+            print(f"🔥 Unexpected fatal error: {e}")
             logging.exception("Fatal error in run_with_safety_checks")
 
 def build_arg_parser():

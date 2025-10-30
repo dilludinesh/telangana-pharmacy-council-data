@@ -16,6 +16,10 @@
 scraping_progress.json
 pharmacists_detailed.json
 
+# Debug files - completely ignored
+debug/
+*.html
+
 # Demo files (if not needed in repo)
 # photo_demo.html
 

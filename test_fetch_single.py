@@ -211,11 +211,7 @@ def fetch_pharmacist(reg_number: str) -> dict:
         )
         response.raise_for_status()
         
-        # Save raw HTML for debugging and verification
-        os.makedirs('debug', exist_ok=True)
-        debug_file = f'debug/{reg_number}_raw.html'
-        with open(debug_file, 'w', encoding='utf-8') as f:
-            f.write(response.text)
+        # Debug file creation removed - data saved directly to target files
         
         # Check for no records found message (exact match with website)
         if 'No Records Found' in response.text or 'No records found' in response.text:
@@ -226,7 +222,7 @@ def fetch_pharmacist(reg_number: str) -> dict:
         data = extract_pharmacist_data(response.text, reg_number)
         
         if not data:
-            print(f"⚠️ Could not parse data for {reg_number}. Check debug file: {debug_file}")
+            print(f"⚠️ Could not parse data for {reg_number}")
             return None
             
         print(f"✅ Successfully fetched and parsed data for {reg_number}")
@@ -237,9 +233,6 @@ def fetch_pharmacist(reg_number: str) -> dict:
         return None
     except Exception as e:
         print(f"❌ Unexpected error processing {reg_number}: {str(e)}")
-        if 'response' in locals() and hasattr(response, 'text'):
-            with open(f'debug/{reg_number}_error.html', 'w', encoding='utf-8') as f:
-                f.write(response.text)
         return None
 
 def main():
