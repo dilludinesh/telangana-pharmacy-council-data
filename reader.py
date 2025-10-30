@@ -5,9 +5,18 @@ import random
 import json
 import re
 import sys
+import logging  # NEW: For proper logging
 from bs4 import BeautifulSoup
 import os
 from datetime import datetime
+
+# NEW: Set up logging configuration
+logging.basicConfig(
+    filename='tgpc_debug.log',  # Log file
+    filemode='a',
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(message)s'
+)
 
 class Reader:
     def __init__(self, dataset_path="rx.json"):
@@ -24,11 +33,12 @@ class Reader:
         self.progress_file = 'scraping_progress.json'
         self.enhanced_data_file = 'pharmacists_detailed.json'
 
-        # Rate limiting settings
-        self.min_delay = 2  # Minimum seconds between requests
-        self.max_delay = 5  # Maximum seconds between requests
-        self.long_break_after = 100  # Take longer break after every 100 requests
-        self.long_break_duration = 30  # 30 seconds break
+        # Rate limiting settings (now configurable via environment variables)
+        self.min_delay = int(os.environ.get('TGPC_MIN_DELAY', 4))  # Safer: Minimum 4 seconds between requests
+        self.max_delay = int(os.environ.get('TGPC_MAX_DELAY', 10)) # Safer: Maximum 10 seconds between requests
+        self.long_break_after = int(os.environ.get('TGPC_LONG_BREAK_AFTER', 100))
+        self.long_break_duration = int(os.environ.get('TGPC_LONG_BREAK_DURATION', 60))  # Safer: 60 seconds break every long_break_after
+        self.adaptive_pause_minutes = int(os.environ.get('TGPC_ADAPTIVE_PAUSE_MINUTES', 10))  # NEW: Adaptive pause duration (minutes)
 
     def load_progress(self):
         """Load progress from file"""
@@ -56,34 +66,67 @@ class Reader:
         return []
 
     def make_request(self, url, data=None):
-        """Make a request with error handling"""
-        try:
-            if data:
-                response = self.session.post(url, data=data, timeout=30)
-            else:
-                response = self.session.get(url, timeout=30)
+        """Make a request with error handling and adaptive pausing for blocks/rate limits"""
+        attempt = 0
+        while attempt < 2:
+            try:
+                if data:
+                    response = self.session.post(url, data=data, timeout=30)
+                else:
+                    response = self.session.get(url, timeout=30)
 
-            # Check for blocking indicators
-            if response.status_code == 403:
-                print("🚫 403 Forbidden - Possible blocking detected!")
+                # Check for blocking indicators
+                if response.status_code == 403:
+                    print("🚫 403 Forbidden - Possible blocking detected!")
+                    logging.error(f"403 Forbidden from {url}")
+                    if attempt == 0:
+                        print(f"⏸️  Adaptive pause for {self.adaptive_pause_minutes} minutes...")
+                        logging.warning(f"Pausing for {self.adaptive_pause_minutes} minutes due to 403 Forbidden block.")
+                        time.sleep(self.adaptive_pause_minutes * 60)
+                        attempt += 1
+                        continue
+                    else:
+                        return None
+                elif response.status_code == 429:
+                    print("🐌 429 Rate Limited - Need to slow down!")
+                    logging.warning(f"429 Rate Limited from {url}")
+                    if attempt == 0:
+                        print(f"⏸️  Adaptive pause for {self.adaptive_pause_minutes} minutes...")
+                        logging.warning(f"Pausing for {self.adaptive_pause_minutes} minutes due to 429 Too Many Requests.")
+                        time.sleep(self.adaptive_pause_minutes * 60)
+                        attempt += 1
+                        continue
+                    else:
+                        return None
+                elif response.status_code != 200:
+                    print(f"❌ HTTP {response.status_code} - Error")
+                    logging.error(f"HTTP {response.status_code} from {url}")
+                    return None
+
+                # Add random delay between requests
+                delay = random.uniform(self.min_delay, self.max_delay)
+                print(f"⏱️  Waiting {delay:.1f}s...")
+                time.sleep(delay)
+
+                return response
+
+            except requests.exceptions.RequestException as e:
+                print(f"🔥 Request error: {e}")
+                logging.exception(f"RequestException from {url}")
+                if attempt == 0:
+                    print(f"⏸️  Adaptive pause for {self.adaptive_pause_minutes} minutes after network error...")
+                    logging.warning(f"Pausing for {self.adaptive_pause_minutes} minutes after network error.")
+                    time.sleep(self.adaptive_pause_minutes * 60)
+                    attempt += 1
+                    continue
+                else:
+                    return None
+            except Exception as e:
+                print(f"🔥 Unexpected error: {e}")
+                logging.exception(f"Unexpected error in make_request({url})")
                 return None
-            elif response.status_code == 429:
-                print("🐌 429 Rate Limited - Need to slow down!")
-                return None
-            elif response.status_code != 200:
-                print(f"❌ HTTP {response.status_code} - Error")
-                return None
-
-            # Add random delay between requests
-            delay = random.uniform(self.min_delay, self.max_delay)
-            print(f"⏱️  Waiting {delay:.1f}s...")
-            time.sleep(delay)
-
-            return response
-
-        except requests.exceptions.RequestException as e:
-            print(f"🔥 Request error: {e}")
-            return None
+            break  # Only break if everything went fine
+        return None
 
     def get_total_pharmacist_count(self):
         """Fetch the total count of pharmacists listed on the council website"""
@@ -381,25 +424,31 @@ class Reader:
         reg_numbers = [p['registration_number'] for p in basic_data]
 
         print("🛡️  Reader mode activated")
+        logging.info(f"Run started, {len(reg_numbers)} to process.")
         print(f"📋 Total registration numbers to process: {len(reg_numbers)}")
         print(f"🐌 Rate limiting: {self.min_delay}-{self.max_delay}s between requests")
         print(f"💤 Long break every {self.long_break_after} requests: {self.long_break_duration}s")
         print(f"💾 Progress saved every 10 requests")
 
-        # Ask for confirmation
-        response = input("\n⚠️  This will make thousands of requests. Continue? (y/N): ")
-        if response.lower() != 'y':
-            print("✅ Operation cancelled safely")
-            return
+        try:
+            # Ask for confirmation
+            response = input("\n⚠️  This will make thousands of requests. Continue? (y/N): ")
+            if response.lower() != 'y':
+                print("✅ Operation cancelled safely")
+                logging.info("Operation cancelled by user at safety prompt.")
+                return
 
-        start_index = int(input("Start from index (0 for beginning): ") or "0")
+            start_index = int(input("Start from index (0 for beginning): ") or "0")
 
-        print("🚀 Starting data extraction...")
-        self.process_batch(reg_numbers, start_index)
+            print("🚀 Starting data extraction...")
+            self.process_batch(reg_numbers, start_index)
 
-        print("🎉 Extraction completed!")
-        print(f"📊 Check {self.enhanced_data_file} for results")
-        print(f"📈 Check {self.progress_file} for progress details")
+            print("🎉 Extraction completed!")
+            print(f"📊 Check {self.enhanced_data_file} for results")
+            print(f"📈 Check {self.progress_file} for progress details")
+        except Exception as e:
+            print(f"🔥 Unexpected fatal error: {e}\nCheck tgpc_debug.log for details.")
+            logging.exception("Fatal error in run_with_safety_checks")
 
 def build_arg_parser():
     parser = argparse.ArgumentParser(

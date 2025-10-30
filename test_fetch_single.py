@@ -243,56 +243,29 @@ def fetch_pharmacist(reg_number: str) -> dict:
         return None
 
 def main():
-    # Test with registration number 1 (will be formatted as TS000001)
-    reg_number = "1"
-    print(f"🚀 Testing with registration number: {reg_number}")
-    
-    # Create directories if they don't exist
-    os.makedirs('data/raw', exist_ok=True)
-    
-    # Fetch and save data
-    result = fetch_pharmacist(reg_number)
-    
-    if result:
-        # Save to JSON file
-        with open(f'data/raw/{reg_number.zfill(6)}.json', 'w', encoding='utf-8') as f:
-            json.dump(result, f, indent=2, ensure_ascii=False)
-        print(f"📝 Data saved to data/raw/{reg_number.zfill(6)}.json")
-        
-        # Print a summary using the new field names
-        print("\n📋 Extracted Data Summary:")
-        print("-"*40)
-        print(f"👤 Name: {result['personal_details'].get('name')}")
-        print(f"👨‍👦 Father's Name: {result['personal_details'].get('father_name')}")
-        print(f"🚻 Gender: {result['personal_details'].get('gender')}")
-        print(f"📝 Registration: {result['registration'].get('registration_no')}")
-        print(f"📊 Status: {result['registration'].get('registration_status')}")
-        print(f"📅 Validity: {result['registration'].get('validity_date')}")
-        
-        # Education details
-        if result.get('education'):
-            print("\n🎓 Education Details:")
-            for edu in result['education']:
-                print(f"\n  📜 {edu.get('qualification', 'N/A')}")
-                print(f"  🏛️  {edu.get('college_name', 'N/A')}")
-                print(f"  🎓 Board/University: {edu.get('board_university', 'N/A')}")
-                print(f"  📍 {edu.get('college_address', 'N/A')}")
-                print(f"  📅 {edu.get('academic_year_from', 'N/A')} to {edu.get('academic_year_to', 'N/A')}")
-                print(f"  🔢 HT No: {edu.get('hallticket_no', 'N/A')}")
-        
-        # Work experience
-        if result.get('work_experience'):
-            work = result['work_experience']
-            if any(work.values()):  # Only show if there's any work data
-                print("\n💼 Current Work/Study:")
-                if work.get('work_address'):
-                    print(f"  🏢 {work.get('work_address')}")
-                if work.get('work_district'):
-                    print(f"  🗺️  {work.get('work_district')}, {work.get('work_state', '')}")
-                if work.get('work_pincode'):
-                    print(f"  📮 {work.get('work_pincode')}")
-    else:
-        print("❌ Failed to fetch data. Check the debug file for more information.")
+    # Limit number of registrations fetched for testing (set LIMIT=None to process all)
+    LIMIT = 5  # <--- Change this as needed
+
+    # Load registration numbers from rx.json
+    with open('rx.json', 'r', encoding='utf-8') as f:
+        rx_data = json.load(f)
+    all_regs = [rec['registration_number'] for rec in rx_data if 'registration_number' in rec]
+
+    if LIMIT:
+        all_regs = all_regs[:LIMIT]
+
+    print(f"Going to process {len(all_regs)} registration numbers from rx.json...")
+    for reg_no in all_regs:
+        print(f"\n🚀 Fetching for registration number: {reg_no}")
+        result = fetch_pharmacist(reg_no)
+        if result:
+            reg_no_real = result['registration'].get('registration_no', reg_no)
+            filename = f"data/raw/{reg_no_real}.json"
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(result, f, indent=2, ensure_ascii=False)
+            print(f"📝 Data saved to {filename}")
+        else:
+            print(f"❌ No data for {reg_no}")
 
 if __name__ == "__main__":
     main()
