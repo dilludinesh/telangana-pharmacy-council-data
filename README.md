@@ -163,6 +163,27 @@ This will extract detailed information for each pharmacist including:
 - **Geographic Coverage:** Telangana state, India
 - **Data Completeness:** 100% (all available records)
 
+## 🔒 Data Protection
+
+This project includes several security measures to protect important data files:
+
+1. **Protected Files**:
+   - `rx.json` and files in `data/raw/` are protected from accidental deletion
+   - These files are excluded from cleanup operations
+
+2. **Automatic Backups**:
+   - Run `./backup_script.sh` to create timestamped backups
+   - The last 5 backups are retained in `~/tgpc_backups/`
+
+3. **Git Protection**:
+   - Pre-commit hooks prevent accidental deletion of protected files
+   - `.gitignore` is configured to protect important data files
+
+4. **Recovery**:
+   - If a file is accidentally deleted, you can restore it from:
+     - Git history: `git checkout -- filename`
+     - The latest backup in `~/tgpc_backups/`
+
 ## ⚖️ Legal Notice
 
 This data is extracted from the public TGPC website for research and analysis purposes. Users are responsible for compliance with applicable laws and regulations regarding the use of this data.

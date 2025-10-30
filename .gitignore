@@ -3,6 +3,10 @@
 *.html.bak
 *.backup
 
+# Protected data files - these should never be deleted
+!data/raw/*.json
+!rx.json
+
 # Large data files (if needed)
 # Uncomment if you want to ignore large HTML captures or data files
 # *.html
