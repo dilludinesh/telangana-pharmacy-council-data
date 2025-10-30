@@ -130,7 +130,7 @@ def update_readme_contents(readme: str, stats: Dict[str, object]) -> str:
     unique_names = stats["unique_names"]
 
     readme = replace_line(
-        r"(Telangana Pharmacy Council - Complete Pharmacist Registration Data) \([^)]+\)",
+        r"(TGPC - Complete Pharmacist Registration Data) \([^)]+\)",
         lambda m: f"{m.group(1)} ({format_int(total_records)} records)",
         readme,
     )

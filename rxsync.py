@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Daily synchronization utility for Telangana Pharmacy Council data."""
+"""Daily synchronization utility for TGPC data."""
 
 from __future__ import annotations
 

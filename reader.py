@@ -403,7 +403,7 @@ class Reader:
 
 def build_arg_parser():
     parser = argparse.ArgumentParser(
-        description="Dataset reader for Telangana Pharmacy Council records"
+        description="Dataset reader for TGPC records"
     )
     parser.add_argument(
         "--dataset",

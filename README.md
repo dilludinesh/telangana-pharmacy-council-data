@@ -1,15 +1,15 @@
-# Telangana Pharmacy Council Data Extraction
+# TGPC Data Extraction
 
-Telangana Pharmacy Council - Complete Pharmacist Registration Data (82,488 records)
+TGPC - Complete Pharmacist Registration Data (82,488 records)
 
 ## 📊 Overview
 
-This repository contains the complete extracted dataset of registered pharmacists from the Telangana Pharmacy Council website, along with a robust extraction system for obtaining detailed pharmacist information. The data provides comprehensive professional details for analysis and research purposes.
+This repository contains the complete extracted dataset of registered pharmacists from the TGPC website, along with a robust extraction system for obtaining detailed pharmacist information. The data provides comprehensive professional details for analysis and research purposes.
 
 ## 📋 Dataset Details
 
 - **Total Records:** 82,488 pharmacists
-- **Source:** [Telangana Pharmacy Council Website](https://www.pharmacycouncil.telangana.gov.in/pharmacy/srchpharmacisttotal)
+- **Source:** [TGPC Website](https://www.pharmacycouncil.telangana.gov.in/pharmacy/srchpharmacisttotal)
 - **Extraction Date:** October 2025
 - **Format:** JSON (basic + detailed extraction capability)
 
@@ -165,7 +165,7 @@ This will extract detailed information for each pharmacist including:
 
 ## ⚖️ Legal Notice
 
-This data is extracted from the public Telangana Pharmacy Council website for research and analysis purposes. Users are responsible for compliance with applicable laws and regulations regarding the use of this data.
+This data is extracted from the public TGPC website for research and analysis purposes. Users are responsible for compliance with applicable laws and regulations regarding the use of this data.
 
 ## 🤝 Contributing
 
@@ -176,4 +176,4 @@ If you find issues or have improvements:
 
 ## 📄 License
 
-This project is for educational and research purposes. The original data belongs to the Telangana Pharmacy Council.
+This project is for educational and research purposes. The original data belongs to the TGPC.
