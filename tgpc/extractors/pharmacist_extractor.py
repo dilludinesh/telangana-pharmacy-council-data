@@ -22,7 +22,7 @@ from tgpc.core.exceptions import (
     NetworkException, ExtractionException, ParsingException, 
     RateLimitException, create_http_exception
 )
-from tgpc.utils.logger import get_logger, PerformanceLogger
+from tgpc.utils.logger import get_logger
 
 
 class PharmacistExtractor:
@@ -186,62 +186,62 @@ class PharmacistExtractor:
             NetworkException: If unable to fetch data.
             ParsingException: If unable to parse the response.
         """
-        with PerformanceLogger(self.logger, "extract_total_count"):
-            self.logger.info("Fetching total pharmacist count")
+        # Extract total count
+        self.logger.info("Fetching total pharmacist count")
+        
+        try:
+            response = self._make_request(self.total_url)
+            soup = BeautifulSoup(response.content, 'html.parser')
             
-            try:
-                response = self._make_request(self.total_url)
-                soup = BeautifulSoup(response.content, 'html.parser')
-                
-                # Find the pharmacists table
-                table = soup.find('table', attrs={'id': 'tablesorter-demo'})
-                if not table:
-                    # Fallback to first table
-                    tables = soup.find_all('table')
-                    table = tables[0] if tables else None
-                
-                if not table:
-                    raise ParsingException(
-                        "Could not locate pharmacists table on the page",
-                        data_format="html",
-                        parse_location="table search"
-                    )
-                
-                # Count data rows
-                data_rows = [row for row in table.find_all('tr') if row.find_all('td')]
-                
-                if not data_rows:
-                    raise ParsingException(
-                        "No pharmacist rows found in table",
-                        data_format="html",
-                        parse_location="table rows"
-                    )
-                
-                # Extract serial numbers for accurate count
-                serial_numbers = []
-                for row in data_rows:
-                    first_col = row.find_all('td')[0].get_text(strip=True)
-                    if first_col.isdigit():
-                        serial_numbers.append(int(first_col))
-                
-                if serial_numbers:
-                    unique_count = len(set(serial_numbers))
-                    self.logger.info(f"Total count extracted: {unique_count}")
-                    return unique_count
-                
-                # Fallback to row count
-                count = len(data_rows)
-                self.logger.info(f"Total count (row count): {count}")
-                return count
-                
-            except (NetworkException, ParsingException):
-                raise
-            except Exception as e:
-                raise ExtractionException(
-                    f"Failed to extract total count: {str(e)}",
-                    extraction_type="total_count",
-                    cause=e
+            # Find the pharmacists table
+            table = soup.find('table', attrs={'id': 'tablesorter-demo'})
+            if not table:
+                # Fallback to first table
+                tables = soup.find_all('table')
+                table = tables[0] if tables else None
+            
+            if not table:
+                raise ParsingException(
+                    "Could not locate pharmacists table on the page",
+                    data_format="html",
+                    parse_location="table search"
                 )
+            
+            # Count data rows
+            data_rows = [row for row in table.find_all('tr') if row.find_all('td')]
+            
+            if not data_rows:
+                raise ParsingException(
+                    "No pharmacist rows found in table",
+                    data_format="html",
+                    parse_location="table rows"
+                )
+            
+            # Extract serial numbers for accurate count
+            serial_numbers = []
+            for row in data_rows:
+                first_col = row.find_all('td')[0].get_text(strip=True)
+                if first_col.isdigit():
+                    serial_numbers.append(int(first_col))
+            
+            if serial_numbers:
+                unique_count = len(set(serial_numbers))
+                self.logger.info(f"Total count extracted: {unique_count}")
+                return unique_count
+            
+            # Fallback to row count
+            count = len(data_rows)
+            self.logger.info(f"Total count (row count): {count}")
+            return count
+            
+        except (NetworkException, ParsingException):
+            raise
+        except Exception as e:
+            raise ExtractionException(
+                f"Failed to extract total count: {str(e)}",
+                extraction_type="total_count",
+                cause=e
+            )
     
     def extract_basic_records(self) -> List[PharmacistRecord]:
         """
@@ -254,42 +254,42 @@ class PharmacistExtractor:
             NetworkException: If unable to fetch data.
             ParsingException: If unable to parse the response.
         """
-        with PerformanceLogger(self.logger, "extract_basic_records"):
-            self.logger.info("Extracting basic pharmacist records")
+        # Extract basic records
+        self.logger.info("Extracting basic pharmacist records")
+        
+        try:
+            response = self._make_request(self.total_url)
+            soup = BeautifulSoup(response.content, 'html.parser')
             
-            try:
-                response = self._make_request(self.total_url)
-                soup = BeautifulSoup(response.content, 'html.parser')
-                
-                # Find the pharmacists table
-                table = soup.find('table', attrs={'id': 'tablesorter-demo'})
-                if not table:
-                    tables = soup.find_all('table')
-                    table = tables[0] if tables else None
-                
-                if not table:
-                    raise ParsingException(
-                        "Could not locate pharmacists table",
-                        data_format="html",
-                        parse_location="table search"
-                    )
-                
-                records = self._parse_basic_table(table)
-                
-                self.logger.info(
-                    f"Basic records extraction completed: {len(records)} records"
+            # Find the pharmacists table
+            table = soup.find('table', attrs={'id': 'tablesorter-demo'})
+            if not table:
+                tables = soup.find_all('table')
+                table = tables[0] if tables else None
+            
+            if not table:
+                raise ParsingException(
+                    "Could not locate pharmacists table",
+                    data_format="html",
+                    parse_location="table search"
                 )
-                
-                return records
-                
-            except (NetworkException, ParsingException):
-                raise
-            except Exception as e:
-                raise ExtractionException(
-                    f"Failed to extract basic records: {str(e)}",
-                    extraction_type="basic_records",
-                    cause=e
-                )
+            
+            records = self._parse_basic_table(table)
+            
+            self.logger.info(
+                f"Basic records extraction completed: {len(records)} records"
+            )
+            
+            return records
+            
+        except (NetworkException, ParsingException):
+            raise
+        except Exception as e:
+            raise ExtractionException(
+                f"Failed to extract basic records: {str(e)}",
+                extraction_type="basic_records",
+                cause=e
+            )
     
     def _parse_basic_table(self, table) -> List[PharmacistRecord]:
         """Parse basic pharmacist data from HTML table."""
@@ -348,53 +348,49 @@ class PharmacistExtractor:
             NetworkException: If unable to fetch data.
             ParsingException: If unable to parse the response.
         """
-        with PerformanceLogger(
-            self.logger, 
-            "extract_detailed_info",
-            registration_number=registration_number
-        ):
-            self.logger.debug(f"Extracting detailed info for {registration_number}")
+        # Extract detailed info
+        self.logger.debug(f"Extracting detailed info for {registration_number}")
+        
+        try:
+            # Prepare form data
+            form_data = {
+                'registration_no': registration_number,
+                'app_name': '',
+                'father_name': '',
+                'dob': '',
+                'submit': 'Submit'
+            }
             
-            try:
-                # Prepare form data
-                form_data = {
-                    'registration_no': registration_number,
-                    'app_name': '',
-                    'father_name': '',
-                    'dob': '',
-                    'submit': 'Submit'
-                }
-                
-                response = self._make_request(
-                    self.search_url,
-                    method="POST",
-                    data=form_data
-                )
-                
-                # Check for "No Records Found" message
-                if 'No Records Found' in response.text or 'No records found' in response.text:
-                    self.logger.debug(f"No records found for {registration_number}")
-                    return None
-                
-                # Parse the response
-                record = self._parse_detailed_response(response.text, registration_number)
-                
-                if record:
-                    self.logger.debug(f"Successfully extracted detailed info for {registration_number}")
-                else:
-                    self.logger.warning(f"Could not parse detailed info for {registration_number}")
-                
-                return record
-                
-            except (NetworkException, ParsingException):
-                raise
-            except Exception as e:
-                raise ExtractionException(
-                    f"Failed to extract detailed info for {registration_number}: {str(e)}",
-                    extraction_type="detailed_info",
-                    registration_number=registration_number,
-                    cause=e
-                )
+            response = self._make_request(
+                self.search_url,
+                method="POST",
+                data=form_data
+            )
+            
+            # Check for "No Records Found" message
+            if 'No Records Found' in response.text or 'No records found' in response.text:
+                self.logger.debug(f"No records found for {registration_number}")
+                return None
+            
+            # Parse the response
+            record = self._parse_detailed_response(response.text, registration_number)
+            
+            if record:
+                self.logger.debug(f"Successfully extracted detailed info for {registration_number}")
+            else:
+                self.logger.warning(f"Could not parse detailed info for {registration_number}")
+            
+            return record
+            
+        except (NetworkException, ParsingException):
+            raise
+        except Exception as e:
+            raise ExtractionException(
+                f"Failed to extract detailed info for {registration_number}: {str(e)}",
+                extraction_type="detailed_info",
+                registration_number=registration_number,
+                cause=e
+            )
     
     def _parse_detailed_response(self, html_content: str, registration_number: str) -> Optional[PharmacistRecord]:
         """Parse detailed pharmacist information from HTML response."""
@@ -549,51 +545,45 @@ class PharmacistExtractor:
         Returns:
             List of detailed pharmacist records.
         """
-        with PerformanceLogger(
-            self.logger,
-            "batch_extract",
-            total_numbers=len(registration_numbers),
-            batch_size=batch_size,
-            start_index=start_index
-        ):
-            self.logger.info(
-                f"Starting batch extraction: {len(registration_numbers)} numbers, "
-                f"batch size: {batch_size}, start: {start_index}"
-            )
-            
-            detailed_records = []
-            numbers_to_process = registration_numbers[start_index:]
-            
-            for i, reg_number in enumerate(numbers_to_process, start_index):
-                try:
-                    self.logger.debug(f"Processing {i+1}/{len(registration_numbers)}: {reg_number}")
-                    
-                    detailed_info = self.extract_detailed_info(reg_number)
-                    
-                    if detailed_info:
-                        detailed_records.append(detailed_info)
-                        self.logger.debug(f"Successfully extracted: {reg_number}")
-                    else:
-                        self.logger.warning(f"No detailed info found for: {reg_number}")
-                    
-                    # Progress logging every 10 records
-                    if (i + 1) % 10 == 0:
-                        self.logger.info(
-                            f"Batch progress: {i+1}/{len(registration_numbers)} processed, "
-                            f"{len(detailed_records)} successful extractions"
-                        )
-                    
-                except Exception as e:
-                    self.logger.error(
-                        f"Failed to extract detailed info for {reg_number}: {str(e)}",
-                        extra={"registration_number": reg_number, "error": str(e)}
+        # Batch extract
+        self.logger.info(
+            f"Starting batch extraction: {len(registration_numbers)} numbers, "
+            f"batch size: {batch_size}, start: {start_index}"
+        )
+        
+        detailed_records = []
+        numbers_to_process = registration_numbers[start_index:]
+        
+        for i, reg_number in enumerate(numbers_to_process, start_index):
+            try:
+                self.logger.debug(f"Processing {i+1}/{len(registration_numbers)}: {reg_number}")
+                
+                detailed_info = self.extract_detailed_info(reg_number)
+                
+                if detailed_info:
+                    detailed_records.append(detailed_info)
+                    self.logger.debug(f"Successfully extracted: {reg_number}")
+                else:
+                    self.logger.warning(f"No detailed info found for: {reg_number}")
+                
+                # Progress logging every 10 records
+                if (i + 1) % 10 == 0:
+                    self.logger.info(
+                        f"Batch progress: {i+1}/{len(registration_numbers)} processed, "
+                        f"{len(detailed_records)} successful extractions"
                     )
-            
-            self.logger.info(
-                f"Batch extraction completed: {len(detailed_records)} records extracted"
-            )
-            
-            return detailed_records
+                
+            except Exception as e:
+                self.logger.error(
+                    f"Failed to extract detailed info for {reg_number}: {str(e)}",
+                    extra={"registration_number": reg_number, "error": str(e)}
+                )
+        
+        self.logger.info(
+            f"Batch extraction completed: {len(detailed_records)} records extracted"
+        )
+        
+        return detailed_records
     
     def test_connection(self) -> None:
         """Test connection to TGPC website for health checks."""

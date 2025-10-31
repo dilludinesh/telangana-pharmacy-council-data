@@ -50,16 +50,7 @@ class TGPCEngine:
     def extract_basic_records(self) -> List[PharmacistRecord]:
         """Extract basic pharmacist records from the TGPC website."""
         self.logger.info("Starting basic records extraction")
-        raw_records = self.extractor.extract_basic_records()
-        
-        # Convert to PharmacistRecord objects
-        records = []
-        for raw_record in raw_records:
-            try:
-                record = PharmacistRecord.from_basic_dict(raw_record)
-                records.append(record)
-            except Exception as e:
-                self.logger.warning(f"Failed to process record: {e}")
+        records = self.extractor.extract_basic_records()
         
         self.logger.info(f"Basic records extraction completed: {len(records)} records")
         return records
@@ -95,12 +86,15 @@ class TGPCEngine:
         """Synchronize local data with the TGPC website."""
         self.logger.info("Starting sync with TGPC website")
         
+        # Extract just the filename if a path is provided
+        filename = Path(existing_file).name
+        
         # Load existing records
         existing_records = []
-        existing_file_path = Path(self.config.data_directory) / existing_file
+        existing_file_path = Path(self.config.data_directory) / filename
         
         if existing_file_path.exists():
-            existing_records = self.load_records(existing_file)
+            existing_records = self.load_records(filename)
         
         # Extract current records from website
         current_records = self.extract_basic_records()
@@ -114,7 +108,7 @@ class TGPCEngine:
         
         # Save updated dataset
         if new_reg_numbers or removed_reg_numbers:
-            self.save_records(current_records, existing_file)
+            self.save_records(current_records, filename)
             
             sync_result = {
                 "status": "updated",
