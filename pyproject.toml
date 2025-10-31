@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tgpc-data-extraction"
+version = "2.0.0-minimal"
+description = "Minimal TGPC data extraction system"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "requests>=2.31.0",
+    "beautifulsoup4>=4.12.0",
+    "click>=8.1.0",
+    "python-dotenv>=1.0.0",
+    "rich>=13.0.0",
+    "tenacity>=8.2.0",
+]
+
+[project.scripts]
+tgpc = "tgpc.cli.commands:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tgpc*"]

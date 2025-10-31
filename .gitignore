@@ -1,32 +1,26 @@
+# Environment and secrets
 .env
+.env.local
+.env.*.local
+
 # Project specific files
 *.html.bak
 *.backup
+*.bak
 
-# Protected data files - these should never be deleted
-!data/raw/*.json
-!rx.json
-
-# Large data files (if needed)
-# Uncomment if you want to ignore large HTML captures or data files
-# *.html
-# pharmacists_*.json
-
-# Scraping artifacts
+# Data files (keep the main rx.json in data/)
 scraping_progress.json
 pharmacists_detailed.json
-
-# Debug files - completely ignored
-debug/
 *.html
-
-# Demo files (if not needed in repo)
-# photo_demo.html
 
 # Temporary files
 *.tmp
 *.temp
 *~
+
+# Logs
+logs/
+*.log
 
 # Python
 __pycache__/
