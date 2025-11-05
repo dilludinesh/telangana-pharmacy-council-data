@@ -23,7 +23,7 @@ class FileManager:
         self.data_dir = Path(config.data_directory)
         self.data_dir.mkdir(parents=True, exist_ok=True)
     
-    def save_records(self, records: List[PharmacistRecord], filename: str) -> Path:
+    def save_records(self, records: List[PharmacistRecord], filename: str, basic_only: bool = False) -> Path:
         """Save pharmacist records to JSON file."""
         if not records:
             raise ValueError("No records to save")
@@ -31,7 +31,10 @@ class FileManager:
         file_path = self.data_dir / filename
         
         # Convert records to dictionaries
-        data = [record.to_dict() for record in records]
+        if basic_only:
+            data = [record.to_basic_dict() for record in records]
+        else:
+            data = [record.to_dict() for record in records]
         
         # Save to file
         with open(file_path, 'w', encoding='utf-8') as f:

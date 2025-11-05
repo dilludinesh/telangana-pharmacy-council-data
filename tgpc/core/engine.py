@@ -72,10 +72,10 @@ class TGPCEngine:
         self.logger.info(f"Detailed records extraction completed: {len(detailed_records)} records")
         return detailed_records
     
-    def save_records(self, records: List[PharmacistRecord], filename: str) -> Path:
+    def save_records(self, records: List[PharmacistRecord], filename: str, basic_only: bool = False) -> Path:
         """Save pharmacist records to file."""
         self.logger.info(f"Saving {len(records)} records to {filename}")
-        return self.file_manager.save_records(records, filename)
+        return self.file_manager.save_records(records, filename, basic_only=basic_only)
     
     def load_records(self, filename: str) -> List[PharmacistRecord]:
         """Load pharmacist records from file."""
@@ -108,7 +108,7 @@ class TGPCEngine:
         
         # Save updated dataset
         if new_reg_numbers or removed_reg_numbers:
-            self.save_records(current_records, filename)
+            self.save_records(current_records, filename, basic_only=True)
             
             sync_result = {
                 "status": "updated",

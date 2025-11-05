@@ -48,7 +48,7 @@ def extract(ctx, output):
         console.print("Extracting basic records...")
         records = engine.extract_basic_records()
         
-        saved_path = engine.save_records(records, output)
+        saved_path = engine.save_records(records, output, basic_only=True)
         console.print(f"Extracted {len(records):,} records to {saved_path}")
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")

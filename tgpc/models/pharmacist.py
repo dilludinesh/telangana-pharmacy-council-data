@@ -207,6 +207,16 @@ class PharmacistRecord:
             "data_source": self.data_source
         }
     
+    def to_basic_dict(self) -> Dict[str, Any]:
+        """Convert record to basic dictionary with only Total Records fields."""
+        return {
+            "serial_number": self.serial_number,
+            "registration_number": self.registration_number,
+            "name": self.name,
+            "father_name": self.father_name,
+            "category": self.category
+        }
+    
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "PharmacistRecord":
         """Create record from dictionary."""
