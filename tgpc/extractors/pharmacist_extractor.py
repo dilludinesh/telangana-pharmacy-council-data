@@ -409,6 +409,7 @@ class PharmacistExtractor:
                 'category': '',
                 'status': '',
                 'gender': '',
+                'validity': '',
                 'photo_data': None,
                 'education': [],
                 'work_experience': None
@@ -426,6 +427,16 @@ class PharmacistExtractor:
             if len(tables) >= 3:
                 self._parse_work_info_table(tables[2], record_data)
             
+            # Parse validity date if present
+            validity_date = None
+            if record_data['validity']:
+                try:
+                    # Parse date format like "31-Dec-2022"
+                    validity_date = datetime.strptime(record_data['validity'], '%d-%b-%Y')
+                except ValueError:
+                    # If parsing fails, keep as None
+                    pass
+            
             # Create PharmacistRecord object
             record = PharmacistRecord(
                 registration_number=record_data['registration_number'],
@@ -434,6 +445,7 @@ class PharmacistExtractor:
                 category=record_data['category'],
                 status=record_data['status'],
                 gender=record_data['gender'],
+                validity_date=validity_date,
                 photo_data=record_data['photo_data'],
                 education=record_data['education'],
                 work_experience=record_data['work_experience']
@@ -481,6 +493,8 @@ class PharmacistExtractor:
                     record_data['status'] = value
                 elif 'gender' in header_lower or 'sex' in header_lower:
                     record_data['gender'] = value
+                elif 'validity' in header_lower:
+                    record_data['validity'] = value
                 elif 'photo' in header_lower or i == len(headers) - 1:
                     # Photo is typically in the last column
                     photo_img = cell.find('img')

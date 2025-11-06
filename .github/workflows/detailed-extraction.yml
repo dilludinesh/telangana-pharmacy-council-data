@@ -1,0 +1,173 @@
+name: Detailed Data Extraction (Batch)
+
+on:
+  schedule:
+    # Run detailed extraction on weekdays at different times (after basic update)
+    # Extract 25 records per day to be very server-friendly
+    - cron: '45 11 * * 1'  # Monday 11:45 AM UTC (15 min after basic update)
+    - cron: '15 13 * * 2'  # Tuesday 1:15 PM UTC  
+    - cron: '50 12 * * 3'  # Wednesday 12:50 PM UTC
+    - cron: '25 14 * * 4'  # Thursday 2:25 PM UTC
+    - cron: '35 11 * * 5'  # Friday 11:35 AM UTC
+  workflow_dispatch:  # Allow manual triggering
+    inputs:
+      batch_size:
+        description: 'Number of records to extract'
+        required: false
+        default: '25'
+        type: string
+
+jobs:
+  extract-detailed:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Create directories
+      run: |
+        mkdir -p data/detailed
+        mkdir -p data/metadata
+    
+    - name: Check extraction status
+      id: status
+      run: |
+        python -c "
+        from tgpc.extractors.detailed_extractor import get_extraction_summary
+        
+        summary = get_extraction_summary()
+        print(f'TOTAL_RECORDS={summary[\"total_records\"]}')
+        print(f'EXTRACTED_COUNT={summary[\"extracted_count\"]}')
+        print(f'REMAINING_RECORDS={summary[\"remaining_records\"]}')
+        print(f'PROGRESS_PERCENT={summary[\"progress_percentage\"]:.1f}')
+        
+        # Set GitHub Actions outputs
+        with open('$GITHUB_OUTPUT', 'a') as f:
+            f.write(f'total_records={summary[\"total_records\"]}\n')
+            f.write(f'extracted_count={summary[\"extracted_count\"]}\n')
+            f.write(f'remaining_records={summary[\"remaining_records\"]}\n')
+            f.write(f'progress_percent={summary[\"progress_percentage\"]:.1f}\n')
+            f.write(f'should_extract={\"true\" if summary[\"remaining_records\"] > 0 else \"false\"}\n')
+        "
+    
+    - name: Extract detailed batch
+      if: steps.status.outputs.should_extract == 'true'
+      id: extract
+      run: |
+        BATCH_SIZE=${{ github.event.inputs.batch_size || '25' }}
+        echo "🔄 Extracting detailed records (batch size: $BATCH_SIZE)..."
+        
+        python -c "
+        from tgpc.extractors.detailed_extractor import extract_detailed_batch
+        import json
+        
+        # Extract batch
+        batch_size = int('$BATCH_SIZE')
+        result = extract_detailed_batch(batch_size=batch_size)
+        
+        print(f'✅ Batch extraction completed:')
+        print(f'  📋 Processed: {result[\"processed\"]}')
+        print(f'  ✅ Extracted: {result[\"extracted\"]}')
+        print(f'  ⏭️ Skipped: {result[\"skipped\"]}')
+        print(f'  ❌ Failed: {result[\"failed\"]}')
+        
+        # Set GitHub Actions outputs
+        with open('$GITHUB_OUTPUT', 'a') as f:
+            f.write(f'processed={result[\"processed\"]}\n')
+            f.write(f'extracted={result[\"extracted\"]}\n')
+            f.write(f'skipped={result[\"skipped\"]}\n')
+            f.write(f'failed={result[\"failed\"]}\n')
+        "
+    
+    - name: Check for new files
+      if: steps.status.outputs.should_extract == 'true'
+      id: changes
+      run: |
+        if [ -n "$(git status --porcelain data/detailed/ data/metadata/)" ]; then
+          echo "changes=true" >> $GITHUB_OUTPUT
+          echo "New detailed files created"
+        else
+          echo "changes=false" >> $GITHUB_OUTPUT
+          echo "No new files created"
+        fi
+    
+    - name: Commit and push changes
+      if: steps.status.outputs.should_extract == 'true' && steps.changes.outputs.changes == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add only the new detailed files and metadata
+        git add data/detailed/ data/metadata/
+        
+        # Create commit message with extraction details
+        git commit -m "📋 Detailed extraction batch - $(date '+%Y-%m-%d')
+
+        🔍 Extraction Summary:
+        • Processed: ${{ steps.extract.outputs.processed }} records
+        • Extracted: ${{ steps.extract.outputs.extracted }} detailed records
+        • Skipped: ${{ steps.extract.outputs.skipped }} (already exist)
+        • Failed: ${{ steps.extract.outputs.failed }} records
+        
+        📊 Progress Update:
+        • Total records: ${{ steps.status.outputs.total_records }}
+        • Completed: ${{ steps.status.outputs.extracted_count }} records
+        • Remaining: ${{ steps.status.outputs.remaining_records }} records
+        • Progress: ${{ steps.status.outputs.progress_percent }}%
+        
+        🔄 Server-friendly extraction (25 records/day max)
+        📁 Individual JSON files with exact website structure
+        ⏰ Extracted at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        
+        git push
+    
+    - name: Create extraction summary
+      if: always()
+      run: |
+        echo "## 📋 Detailed Extraction Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Date:** $(date '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ steps.status.outputs.should_extract }}" == "true" ]; then
+          echo "**Status:** ✅ Extraction completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Batch Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **Processed:** ${{ steps.extract.outputs.processed }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Extracted:** ${{ steps.extract.outputs.extracted }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Skipped:** ${{ steps.extract.outputs.skipped }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Failed:** ${{ steps.extract.outputs.failed }}" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "**Status:** ✅ All records already extracted" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Overall Progress" >> $GITHUB_STEP_SUMMARY
+        echo "- **Total Records:** ${{ steps.status.outputs.total_records }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Extracted:** ${{ steps.status.outputs.extracted_count }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Remaining:** ${{ steps.status.outputs.remaining_records }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Progress:** ${{ steps.status.outputs.progress_percent }}%" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Data Structure" >> $GITHUB_STEP_SUMMARY
+        echo "- **Format:** Individual JSON files (one per pharmacist)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Location:** \`data/detailed/TS######.json\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Fields:** Exact website structure only" >> $GITHUB_STEP_SUMMARY
+        echo "- **Rate:** 25 records/day (server-friendly)" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Notify if extraction complete
+      if: steps.status.outputs.remaining_records == '0'
+      run: |
+        echo "🎉 All detailed extractions completed!"
+        echo "📊 Total records extracted: ${{ steps.status.outputs.total_records }}"

@@ -1,0 +1,27 @@
+{
+  "total_records": 82605,
+  "extracted_count": 18,
+  "failed_count": 0,
+  "last_processed_index": 7,
+  "extracted_registration_numbers": [
+    "TS000001",
+    "TS000002",
+    "TS000003",
+    "TS000004",
+    "TS000005",
+    "TS000007",
+    "TS000008",
+    "TS000009",
+    "TS000010",
+    "TS000011",
+    "TS000001",
+    "TS000002",
+    "TS000003",
+    "TS000004",
+    "TS000005",
+    "TS000007",
+    "TS000008",
+    "TS000009"
+  ],
+  "failed_registration_numbers": []
+}
