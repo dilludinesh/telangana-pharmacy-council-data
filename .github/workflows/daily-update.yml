@@ -2,8 +2,15 @@ name: Daily TGPC Data Update
 
 on:
   schedule:
-    # Run daily at 2:00 AM UTC (adjust timezone as needed)
-    - cron: '0 2 * * *'
+    # Run daily during business hours to blend with normal website traffic
+    # Randomized times between 11 AM - 3 PM UTC (peak usage hours)
+    - cron: '23 11 * * 1'  # Monday 11:23 AM UTC
+    - cron: '47 12 * * 2'  # Tuesday 12:47 PM UTC
+    - cron: '15 13 * * 3'  # Wednesday 1:15 PM UTC
+    - cron: '38 14 * * 4'  # Thursday 2:38 PM UTC
+    - cron: '52 11 * * 5'  # Friday 11:52 AM UTC
+    - cron: '29 12 * * 6'  # Saturday 12:29 PM UTC
+    - cron: '41 13 * * 0'  # Sunday 1:41 PM UTC
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
@@ -30,10 +37,26 @@ jobs:
       run: |
         mkdir -p data/backups
     
+    - name: Check if already updated today
+      id: check_update
+      run: |
+        # Check if we already updated today by looking at recent commits
+        TODAY=$(date -u +%Y-%m-%d)
+        RECENT_COMMIT=$(git log --oneline --since="$TODAY 00:00:00" --until="$TODAY 23:59:59" --grep="🤖 Daily data update" | head -1)
+        
+        if [ -n "$RECENT_COMMIT" ]; then
+          echo "already_updated=true" >> $GITHUB_OUTPUT
+          echo "ℹ️ Already updated today: $RECENT_COMMIT"
+        else
+          echo "already_updated=false" >> $GITHUB_OUTPUT
+          echo "✅ No update today yet, proceeding..."
+        fi
+
     - name: Run daily update
+      if: steps.check_update.outputs.already_updated == 'false'
       id: update
       run: |
-        echo "🔄 Starting daily TGPC data update..."
+        echo "🔄 Starting daily TGPC data update during business hours..."
         python -c "
         from tgpc.automation.daily_updater import run_daily_update
         import json
@@ -74,6 +97,7 @@ jobs:
         "
     
     - name: Check for changes
+      if: steps.check_update.outputs.already_updated == 'false'
       id: changes
       run: |
         if git diff --quiet data/rx.json; then
@@ -85,7 +109,7 @@ jobs:
         fi
     
     - name: Commit and push changes
-      if: steps.changes.outputs.changes == 'true'
+      if: steps.check_update.outputs.already_updated == 'false' && steps.changes.outputs.changes == 'true'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"

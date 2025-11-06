@@ -17,9 +17,9 @@ class Config:
     timeout: int = 30
     max_retries: int = 3
     
-    # Rate Limiting
-    min_delay: float = 4.0
-    max_delay: float = 10.0
+    # Rate Limiting (natural browsing patterns during business hours)
+    min_delay: float = 3.0
+    max_delay: float = 8.0
     long_break_after: int = 100
     long_break_duration: int = 60
     adaptive_pause_minutes: int = 10
@@ -31,8 +31,8 @@ class Config:
     log_level: str = "INFO"
     log_file: str = "tgpc.log"
     
-    # User Agent
-    user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    # User Agent (appears as regular browser during business hours)
+    user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
     
     @classmethod
     def load(cls, config_file: str = None) -> "Config":

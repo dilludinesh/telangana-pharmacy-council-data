@@ -6,7 +6,7 @@
 
 This repository **automatically updates daily** with the latest pharmacist data using GitHub Actions:
 
-- ✅ **Runs daily at 2:00 AM UTC** automatically
+- ✅ **Runs daily during business hours (11 AM - 3 PM UTC)** automatically
 - ✅ **Fetches latest data** from TGPC website (Total Records only)
 - ✅ **Validates and removes duplicates** automatically  
 - ✅ **Updates `data/rx.json`** with clean data
@@ -62,7 +62,7 @@ tgpc/
 
 ## ⚙️ How Automation Works
 
-1. **GitHub Actions** triggers daily at 2:00 AM UTC
+1. **GitHub Actions** triggers daily during business hours (randomized 11 AM - 3 PM UTC)
 2. **Extracts data** from TGPC Total Records URL only
 3. **Validates integrity** and removes duplicates
 4. **Updates `data/rx.json`** if changes detected
