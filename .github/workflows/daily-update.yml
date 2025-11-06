@@ -1,0 +1,136 @@
+name: Daily TGPC Data Update
+
+on:
+  schedule:
+    # Run daily at 2:00 AM UTC (adjust timezone as needed)
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Create data directory
+      run: |
+        mkdir -p data/backups
+    
+    - name: Run daily update
+      id: update
+      run: |
+        echo "🔄 Starting daily TGPC data update..."
+        python -c "
+        from tgpc.automation.daily_updater import run_daily_update
+        import json
+        
+        # Run the update
+        result = run_daily_update()
+        
+        # Output results for GitHub Actions
+        print(f'SUCCESS={result.success}')
+        print(f'TOTAL_RECORDS={result.total_records}')
+        print(f'NEW_RECORDS={result.new_records}')
+        print(f'REMOVED_RECORDS={result.removed_records}')
+        print(f'DUPLICATES_REMOVED={result.duplicates_removed}')
+        print(f'INTEGRITY_SCORE={result.data_integrity_score:.3f}')
+        
+        # Set GitHub Actions outputs
+        with open('$GITHUB_OUTPUT', 'a') as f:
+            f.write(f'success={result.success}\n')
+            f.write(f'total_records={result.total_records}\n')
+            f.write(f'new_records={result.new_records}\n')
+            f.write(f'removed_records={result.removed_records}\n')
+            f.write(f'duplicates_removed={result.duplicates_removed}\n')
+            f.write(f'integrity_score={result.data_integrity_score:.3f}\n')
+        
+        # Create summary
+        if result.success:
+            print('✅ Daily update completed successfully!')
+            print(f'📊 Total records: {result.total_records:,}')
+            print(f'🆕 New records: {result.new_records}')
+            print(f'🗑️ Removed records: {result.removed_records}')
+            print(f'🔍 Duplicates removed: {result.duplicates_removed}')
+            print(f'📈 Data integrity: {result.data_integrity_score:.3f}')
+        else:
+            print('❌ Daily update failed!')
+            for error in result.errors:
+                print(f'   Error: {error}')
+            exit(1)
+        "
+    
+    - name: Check for changes
+      id: changes
+      run: |
+        if git diff --quiet data/rx.json; then
+          echo "changes=false" >> $GITHUB_OUTPUT
+          echo "No changes detected in rx.json"
+        else
+          echo "changes=true" >> $GITHUB_OUTPUT
+          echo "Changes detected in rx.json"
+        fi
+    
+    - name: Commit and push changes
+      if: steps.changes.outputs.changes == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add only the data file (exclude backups from repo)
+        git add data/rx.json
+        
+        # Create commit message with update details
+        git commit -m "🤖 Daily data update - $(date '+%Y-%m-%d')
+
+        📊 Update Summary:
+        • Total records: ${{ steps.update.outputs.total_records }}
+        • New records: ${{ steps.update.outputs.new_records }}
+        • Removed records: ${{ steps.update.outputs.removed_records }}
+        • Duplicates removed: ${{ steps.update.outputs.duplicates_removed }}
+        • Data integrity: ${{ steps.update.outputs.integrity_score }}
+        
+        🔄 Automated update using Total Records URL only
+        🛡️ Data validated and duplicates removed
+        ⏰ Updated at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        
+        git push
+    
+    - name: Create update summary
+      if: always()
+      run: |
+        echo "## 📊 Daily TGPC Update Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Date:** $(date '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** ${{ steps.update.outputs.success == 'True' && '✅ Success' || '❌ Failed' }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Results" >> $GITHUB_STEP_SUMMARY
+        echo "- **Total Records:** ${{ steps.update.outputs.total_records }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **New Records:** ${{ steps.update.outputs.new_records }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Removed Records:** ${{ steps.update.outputs.removed_records }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Duplicates Removed:** ${{ steps.update.outputs.duplicates_removed }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Data Integrity Score:** ${{ steps.update.outputs.integrity_score }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Data Source" >> $GITHUB_STEP_SUMMARY
+        echo "- **URL:** https://www.pharmacycouncil.telangana.gov.in/pharmacy/srchpharmacisttotal" >> $GITHUB_STEP_SUMMARY
+        echo "- **Method:** Single request to Total Records (server-friendly)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Fields:** serial_number, registration_number, name, father_name, category" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "❌ Daily update failed! Check the logs above for details."
+        echo "The rx.json file was not updated due to validation failures or errors."

@@ -13,6 +13,12 @@ scraping_progress.json
 pharmacists_detailed.json
 *.html
 
+# Backup files (keep local only)
+data/backups/
+logs/
+*.backup
+*_backup_*
+
 # Temporary files
 *.tmp
 *.temp
