@@ -9,7 +9,6 @@ from rich.console import Console
 from tgpc.core.engine import TGPCEngine
 from tgpc.config.settings import Config
 from tgpc.core.exceptions import TGPCException
-from tgpc.cli.automation import automation
 
 console = Console()
 
@@ -21,9 +20,6 @@ def main(ctx, config):
     """TGPC Data Extraction System - Extract pharmacist data from TGPC website."""
     ctx.ensure_object(dict)
     ctx.obj["config_file"] = config
-
-# Add automation commands
-main.add_command(automation)
 
 
 @main.command()
