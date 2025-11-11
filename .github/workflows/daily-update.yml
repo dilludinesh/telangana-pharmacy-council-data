@@ -1,4 +1,4 @@
-name: Daily TGPC Data Update
+name: Data Fetch
 
 on:
   schedule:
