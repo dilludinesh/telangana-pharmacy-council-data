@@ -137,14 +137,20 @@ jobs:
           "
         fi
     
+    - name: Export data for web
+      if: steps.check_update.outputs.already_updated == 'false' && steps.changes.outputs.changes == 'true'
+      run: |
+        echo "📦 Exporting data for web interface..."
+        python -m tgpc.database.export_web
+    
     - name: Commit and push changes
       if: steps.check_update.outputs.already_updated == 'false' && steps.changes.outputs.changes == 'true'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         
-        # Add only the data file (exclude backups from repo)
-        git add data/rx.json
+        # Add data files
+        git add data/rx.json web/data.json
         
         # Create commit message with update details
         git commit -m "🤖 Daily data update - $(date '+%Y-%m-%d')
