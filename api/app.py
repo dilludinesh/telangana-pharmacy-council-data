@@ -12,7 +12,9 @@ from tgpc.database.schema import PharmacistDB
 app = Flask(__name__)
 CORS(app)
 
-db = PharmacistDB("data/pharmacists.db")
+# Use absolute path to database
+db_path = Path(__file__).parent.parent / "data" / "pharmacists.db"
+db = PharmacistDB(str(db_path))
 
 
 @app.route('/api/search')
@@ -52,4 +54,4 @@ def health():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)
