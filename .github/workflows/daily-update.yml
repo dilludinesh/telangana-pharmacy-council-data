@@ -96,7 +96,7 @@ jobs:
             exit(1)
         "
     
-    - name: Check for changes
+    - name: Check for changes and display new records
       if: steps.check_update.outputs.already_updated == 'false'
       id: changes
       run: |
@@ -106,6 +106,35 @@ jobs:
         else
           echo "changes=true" >> $GITHUB_OUTPUT
           echo "Changes detected in rx.json"
+          echo ""
+          echo "🆕 New Records Added:"
+          echo "===================="
+          python -c "
+        import json
+        import subprocess
+        
+        # Get the diff and extract added lines
+        diff_output = subprocess.run(['git', 'diff', 'data/rx.json'], capture_output=True, text=True).stdout
+        
+        # Parse added records from diff
+        new_records = []
+        for line in diff_output.split('\n'):
+            if line.startswith('+') and not line.startswith('+++') and '{' in line:
+                try:
+                    # Extract JSON object from the line
+                    json_str = line[1:].strip().rstrip(',')
+                    record = json.loads(json_str)
+                    new_records.append(record)
+                except:
+                    pass
+        
+        # Display new records
+        if new_records:
+            for i, record in enumerate(new_records, 1):
+                print(f'{i}. {record.get(\"registration_number\", \"N/A\")} - {record.get(\"name\", \"N/A\")} ({record.get(\"category\", \"N/A\")})')
+        else:
+            print('No new records could be parsed from diff')
+          "
         fi
     
     - name: Commit and push changes
@@ -148,6 +177,45 @@ jobs:
         echo "- **Duplicates Removed:** ${{ steps.update.outputs.duplicates_removed }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Data Integrity Score:** ${{ steps.update.outputs.integrity_score }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Display new records if any
+        if [ "${{ steps.changes.outputs.changes }}" == "true" ]; then
+          echo "### 🆕 New Records" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          python -c "
+        import json
+        import subprocess
+        
+        # Get the diff and extract added lines
+        diff_output = subprocess.run(['git', 'diff', 'data/rx.json'], capture_output=True, text=True).stdout
+        
+        # Parse added records from diff
+        new_records = []
+        for line in diff_output.split('\n'):
+            if line.startswith('+') and not line.startswith('+++') and '{' in line:
+                try:
+                    json_str = line[1:].strip().rstrip(',')
+                    record = json.loads(json_str)
+                    new_records.append(record)
+                except:
+                    pass
+        
+        # Display new records in markdown table
+        if new_records:
+            print('| Registration | Name | Father Name | Category |')
+            print('|--------------|------|-------------|----------|')
+            for record in new_records:
+                reg = record.get('registration_number', 'N/A')
+                name = record.get('name', 'N/A')
+                father = record.get('father_name', 'N/A')
+                category = record.get('category', 'N/A')
+                print(f'| {reg} | {name} | {father} | {category} |')
+        else:
+            print('_No new records could be parsed_')
+          " >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+        
         echo "### Data Source" >> $GITHUB_STEP_SUMMARY
         echo "- **URL:** https://www.pharmacycouncil.telangana.gov.in/pharmacy/srchpharmacisttotal" >> $GITHUB_STEP_SUMMARY
         echo "- **Method:** Single request to Total Records (server-friendly)" >> $GITHUB_STEP_SUMMARY
