@@ -137,11 +137,11 @@ jobs:
           "
         fi
     
-    - name: Export data for web
+    - name: Update database
       if: steps.check_update.outputs.already_updated == 'false' && steps.changes.outputs.changes == 'true'
       run: |
-        echo "📦 Exporting data for web interface..."
-        python -m tgpc.database.export_web
+        echo "📦 Syncing data to SQLite database..."
+        python scripts/init_database.py
     
     - name: Commit and push changes
       if: steps.check_update.outputs.already_updated == 'false' && steps.changes.outputs.changes == 'true'
@@ -149,8 +149,8 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         
-        # Add data files
-        git add data/rx.json web/data.json
+        # Add data files (JSON and database)
+        git add data/rx.json data/pharmacists.db
         
         # Create commit message with update details
         git commit -m "🤖 Daily data update - $(date '+%Y-%m-%d')

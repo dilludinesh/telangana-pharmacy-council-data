@@ -1,70 +1,74 @@
 # Deployment Guide
 
-## Database + Web Search Interface
+## SQLite Database + API Solution
 
-Your TGPC data is now available as both a database and a searchable website.
+Your TGPC data uses SQLite database instead of loading huge JSON files.
 
 ### What's Been Set Up
 
-1. **SQLite Database** (optional, for advanced use)
-   - Schema: `tgpc/database/schema.py`
-   - Location: `data/pharmacists.db` (gitignored)
-   - Can be used for complex queries, analytics, etc.
+1. **SQLite Database** (main storage)
+   - Location: `data/pharmacists.db` (15 MB, committed to repo)
+   - Indexed for fast searches
+   - Much more efficient than JSON for queries
+   - Auto-synced by GitHub Action
 
-2. **Web Search Interface** (main solution)
-   - Location: `web/` directory
-   - Simple HTML/JS - no backend needed
-   - Searches 82,000+ records instantly
-   - Mobile responsive
+2. **Flask API** 
+   - Location: `api/app.py`
+   - Endpoints: `/api/search`, `/api/stats`
+   - Queries the database efficiently
 
-### Deploy to GitHub Pages (Recommended - FREE)
+3. **Web Search Interface**
+   - Location: `web/index.html`
+   - Calls the API for searches
+   - No huge file downloads needed
 
-1. Go to your repo: https://github.com/dilludx/tgpc
-2. Click **Settings** > **Pages**
-3. Under "Source", select:
-   - Branch: `main`
-   - Folder: `/web`
-4. Click **Save**
-5. Wait 1-2 minutes
-6. Your site will be live at: `https://dilludx.github.io/tgpc/`
+### File Sizes Comparison
 
-### Alternative: Deploy to Netlify (FREE)
+- `data/rx.json`: 13.4 MB (source, kept for compatibility)
+- `data/pharmacists.db`: 15 MB (indexed database)
+- **Total**: 28.4 MB (vs 26.8 MB if we duplicated JSON)
 
-1. Go to https://netlify.com
-2. Click "Add new site" > "Import an existing project"
-3. Connect your GitHub repo
-4. Set:
-   - Base directory: `web`
-   - Build command: (leave empty)
-   - Publish directory: `.` (or leave empty)
-5. Deploy!
+### Why Database is Better
 
-### Local Testing
+- **Efficient queries**: Only returns matching records, not entire dataset
+- **Indexed searches**: Fast lookups on name, registration number
+- **Scalable**: Handles millions of records easily
+- **No client-side load**: Browser doesn't download 13MB JSON
+
+### Local Development
 
 ```bash
-cd web
-python3 -m http.server 8000
+# Initialize database (first time only)
+python3 scripts/init_database.py
+
+# Start API server
+python3 api/app.py
+
+# In another terminal, serve web files
+cd web && python3 -m http.server 8000
 ```
 
 Visit: http://localhost:8000
 
-### How It Works
+### Deployment Options
 
-- The GitHub Action automatically updates `web/data.json` when new pharmacists are added
-- The website loads this JSON file and searches it client-side (no server needed)
-- Fast, simple, and free to host
+**Option 1: Railway.app (FREE)**
+- Supports SQLite databases
+- Free tier: 500 hours/month
+- Deploy: Connect GitHub repo, set start command to `python api/app.py`
 
-### File Sizes
+**Option 2: Render.com (FREE)**
+- Free tier with persistent disk
+- Deploy: Connect repo, select Python, add start command
 
-- `data/rx.json`: 13.4 MB (source data)
-- `web/data.json`: 13.4 MB (same data, for web)
-- Both grow slowly (~6 records/day = ~1KB/day)
+**Option 3: PythonAnywhere (FREE)**
+- Free tier includes SQLite support
+- Upload database file, deploy Flask app
 
 ### Future Growth
 
-At current rate (6 records/day):
-- 1 year: +2,190 records (+350 KB)
-- 5 years: +10,950 records (+1.7 MB)
-- 10 years: +21,900 records (+3.5 MB)
+At 6 records/day:
+- JSON: +1KB/day = +365KB/year
+- Database: +1.2KB/day = +438KB/year (includes indexes)
 
-The website will handle 100,000+ records easily.
+Both will stay under 100MB for 100+ years at this rate.

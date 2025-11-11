@@ -12,9 +12,6 @@
 scraping_progress.json
 pharmacists_detailed.json
 *.html
-data/*.db
-data/*.db-journal
-web/data.json
 
 # Backup files (keep local only)
 data/backups/
