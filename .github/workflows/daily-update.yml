@@ -96,7 +96,7 @@ jobs:
             exit(1)
         "
     
-    - name: Check for changes and display new records
+    - name: Check for changes and save new records
       if: steps.check_update.outputs.already_updated == 'false'
       id: changes
       run: |
@@ -109,6 +109,8 @@ jobs:
           echo ""
           echo "🆕 New Records Added:"
           echo "===================="
+          
+          # Save new records to a file for later use
           python -c "
         import json
         import subprocess
@@ -127,6 +129,10 @@ jobs:
                     new_records.append(record)
                 except:
                     pass
+        
+        # Save to file for later use
+        with open('/tmp/new_records.json', 'w') as f:
+            json.dump(new_records, f)
         
         # Display new records
         if new_records:
@@ -188,23 +194,18 @@ jobs:
         if [ "${{ steps.changes.outputs.changes }}" == "true" ]; then
           echo "### 🆕 New Records" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          python -c "
+          
+          # Load saved new records from file
+          if [ -f /tmp/new_records.json ]; then
+            python -c "
         import json
-        import subprocess
         
-        # Get the diff and extract added lines
-        diff_output = subprocess.run(['git', 'diff', 'data/rx.json'], capture_output=True, text=True).stdout
-        
-        # Parse added records from diff
-        new_records = []
-        for line in diff_output.split('\n'):
-            if line.startswith('+') and not line.startswith('+++') and '{' in line:
-                try:
-                    json_str = line[1:].strip().rstrip(',')
-                    record = json.loads(json_str)
-                    new_records.append(record)
-                except:
-                    pass
+        # Load new records from saved file
+        try:
+            with open('/tmp/new_records.json', 'r') as f:
+                new_records = json.load(f)
+        except:
+            new_records = []
         
         # Display new records in markdown table
         if new_records:
@@ -217,8 +218,11 @@ jobs:
                 category = record.get('category', 'N/A')
                 print(f'| {reg} | {name} | {father} | {category} |')
         else:
-            print('_No new records could be parsed_')
-          " >> $GITHUB_STEP_SUMMARY
+            print('_No new records found_')
+            " >> $GITHUB_STEP_SUMMARY
+          else
+            echo "_Could not load new records data_" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
         fi
         
