@@ -2,60 +2,90 @@
 
 ## Introduction
 
-A free, forever-hosted, open-source search website that allows users to quickly search and reference pharmacist registration data from the TGPC rx.json dataset. The solution must be completely free, require zero maintenance, and stay online indefinitely using static hosting platforms.
+A free, forever-hosted, open-source search website for personal use that allows quick search and reference of pharmacist registration data from the TGPC portal. The solution uses a cloud database (Supabase) that automatically syncs with rx.json daily, eliminating the need to download large files and enabling fast searches even on weak network connections.
 
 ## Glossary
 
 - **TGPC**: Telangana Government Pharmacy Council
 - **rx.json**: JSON file containing 82,000+ pharmacist registration records
-- **Static Site**: Website with no server-side processing, only HTML/CSS/JavaScript
+- **Supabase**: Open-source cloud database platform (PostgreSQL)
 - **GitHub Pages**: Free static site hosting service by GitHub
-- **Client-Side Search**: Search functionality that runs in the user's browser
-- **CDN**: Content Delivery Network for fast global access
+- **GitHub Actions**: Cloud-based automation for CI/CD
+- **API**: Application Programming Interface for database queries
 
 ## Requirements
 
-### Requirement 1: Free Forever Hosting
+### Requirement 1: Automated Data Collection and Sync
 
-**User Story:** As a project maintainer, I want the website to be hosted completely free forever, so that I never have to pay hosting fees or worry about service interruptions.
-
-#### Acceptance Criteria
-
-1. WHEN the website is deployed, THE System SHALL use GitHub Pages for hosting at zero cost
-2. WHEN the repository is public, THE System SHALL remain accessible indefinitely without payment
-3. WHEN GitHub Pages is used, THE System SHALL provide a custom domain option (optional)
-4. WHERE the data updates daily, THE System SHALL automatically redeploy with new data via GitHub Actions
-5. THE System SHALL NOT require any paid services, APIs, or third-party dependencies
-
-### Requirement 2: Fast Client-Side Search
-
-**User Story:** As a user, I want to search pharmacist records instantly without page reloads, so that I can quickly find the information I need.
+**User Story:** As a project maintainer, I want the system to automatically collect new records from TGPC portal and sync them to the cloud database daily, so that the data is always up-to-date without manual intervention.
 
 #### Acceptance Criteria
 
-1. WHEN a user types in the search box, THE System SHALL filter results in real-time without server requests
-2. WHEN the search query matches registration number, THE System SHALL display exact matches first
-3. WHEN the search query matches name or father name, THE System SHALL display partial matches
-4. WHEN search results exceed 50 records, THE System SHALL paginate results for performance
-5. THE System SHALL complete searches within 100 milliseconds for optimal user experience
-6. THE System SHALL support case-insensitive search across all text fields
+1. WHEN the daily GitHub Action runs, THE System SHALL fetch latest data from TGPC portal and update rx.json
+2. WHEN rx.json is updated, THE System SHALL automatically sync all records to Supabase database
+3. WHEN new records are added, THE System SHALL insert them into the database without duplicates
+4. WHEN records are removed from TGPC portal, THE System SHALL remove them from the database
+5. THE System SHALL complete the sync process within 5 minutes
+6. THE System SHALL log sync results (new records, updated records, errors)
+7. THE System SHALL NOT require manual intervention for daily updates
 
-### Requirement 3: Efficient Data Loading with Search Index
+### Requirement 2: Free Cloud Database Hosting
 
-**User Story:** As a user, I want the website to load quickly without downloading the entire 13+ MB dataset, so that I can start searching immediately.
+**User Story:** As a project maintainer, I want a free cloud database that stores all pharmacist records, so that users never have to download large files and can query data efficiently.
 
 #### Acceptance Criteria
 
-1. WHEN the page loads, THE System SHALL load only a lightweight search index (registration numbers and names) instead of full records
-2. WHEN a search is performed, THE System SHALL use the index to find matching records
-3. WHEN a specific record is selected, THE System SHALL fetch only that record's details on-demand
-4. WHEN the search index is generated, THE System SHALL be compressed and under 2 MB in size
-5. THE System SHALL use browser localStorage to cache the search index between visits
-6. WHEN the rx.json updates, THE System SHALL generate a new search index automatically via GitHub Actions
-7. THE System SHALL load the initial page and search index within 2 seconds on a 3G connection
-8. THE System SHALL NOT require downloading the full 13+ MB rx.json file for basic searches
+1. WHEN the database is set up, THE System SHALL use Supabase free tier (500 MB storage)
+2. WHEN data is stored, THE System SHALL use PostgreSQL database in Supabase cloud
+3. THE System SHALL remain within free tier limits (500 MB database, 2 GB bandwidth/month)
+4. THE System SHALL NOT require credit card or payment information
+5. THE System SHALL provide API access for querying data
+6. WHEN the database grows, THE System SHALL handle 100+ years of data within free tier limits
+7. THE System SHALL NOT have any expiration or trial period
 
-### Requirement 4: Mobile-Responsive Design
+### Requirement 3: Simple Search Website
+
+**User Story:** As a user, I want a simple website where I can search pharmacist records instantly, so that I can quickly find information for personal reference.
+
+#### Acceptance Criteria
+
+1. WHEN the website loads, THE System SHALL display a search interface within 2 seconds
+2. WHEN a user types in the search box, THE System SHALL query the Supabase database in real-time
+3. WHEN search results are returned, THE System SHALL display them within 500 milliseconds
+4. THE System SHALL support search by registration number, name, or father name
+5. THE System SHALL display registration number, name, father name, and category in results
+6. WHEN no results match, THE System SHALL display a clear "No results found" message
+7. THE System SHALL work on weak network connections (only small API queries, no large downloads)
+
+### Requirement 4: No Large File Downloads
+
+**User Story:** As a user on weak network, I want the website to work without downloading large files, so that I can search records even with minimal network speed.
+
+#### Acceptance Criteria
+
+1. WHEN the website loads, THE System SHALL NOT download rx.json or any large data files
+2. WHEN a search is performed, THE System SHALL send only the search query (few bytes) to the database
+3. WHEN results are returned, THE System SHALL receive only matching records (few KB maximum)
+4. THE System SHALL NOT require downloading the entire database to the browser
+5. WHEN network is weak (few KB/s), THE System SHALL still function normally
+6. THE System SHALL complete searches even on 2G network speeds
+7. THE System SHALL NOT use browser storage for large data caching
+
+### Requirement 5: Personal Use Optimization
+
+**User Story:** As the sole user of this system, I want it optimized for personal use with minimal complexity, so that it's simple to maintain and use.
+
+#### Acceptance Criteria
+
+1. THE System SHALL be designed for 1-10 users maximum (personal use)
+2. THE System SHALL NOT include features for high-traffic scenarios
+3. THE System SHALL prioritize simplicity over scalability
+4. THE System SHALL have a clean, minimal user interface
+5. THE System SHALL NOT include user authentication or accounts
+6. THE System SHALL be accessible only via the website URL (no mobile app needed)
+7. THE System SHALL focus on search functionality only (no data editing or management)
+
+### Requirement 6: Mobile-Responsive Design
 
 **User Story:** As a mobile user, I want the search interface to work perfectly on my phone, so that I can search records on the go.
 
@@ -63,51 +93,23 @@ A free, forever-hosted, open-source search website that allows users to quickly 
 
 1. WHEN accessed on mobile devices, THE System SHALL display a responsive layout that fits the screen
 2. WHEN the viewport is less than 768px wide, THE System SHALL stack search results vertically
-3. WHEN touch gestures are used, THE System SHALL respond to taps and swipes appropriately
+3. WHEN touch gestures are used, THE System SHALL respond to taps appropriately
 4. THE System SHALL use mobile-friendly font sizes (minimum 16px for inputs)
 5. THE System SHALL NOT require horizontal scrolling on any device size
 
-### Requirement 5: Search Result Display
+### Requirement 7: Zero Maintenance Operation
 
-**User Story:** As a user, I want to see clear, organized search results with all relevant information, so that I can quickly identify the pharmacist I'm looking for.
-
-#### Acceptance Criteria
-
-1. WHEN search results are displayed, THE System SHALL show registration number, name, father name, and category
-2. WHEN multiple results match, THE System SHALL display them in a table or card layout
-3. WHEN no results match, THE System SHALL display a helpful "No results found" message
-4. WHEN results are displayed, THE System SHALL highlight the matching search terms
-5. THE System SHALL show the total count of matching records
-6. THE System SHALL allow sorting results by registration number or name
-
-### Requirement 6: Zero Maintenance Operation with Auto-Index Generation
-
-**User Story:** As a project maintainer, I want the website to update automatically with new data, so that I never have to manually update or maintain it.
+**User Story:** As a project maintainer, I want the system to run automatically without any maintenance, so that I never have to manually update or monitor it.
 
 #### Acceptance Criteria
 
-1. WHEN the daily GitHub Action updates rx.json, THE System SHALL automatically generate a new search index
-2. WHEN the search index is generated, THE System SHALL create a lightweight JSON file with only searchable fields
-3. WHEN the index generation completes, THE System SHALL automatically redeploy the website via GitHub Pages
-4. WHEN the deployment completes, THE System SHALL serve the latest data within 5 minutes
-5. THE System SHALL NOT require manual intervention for updates or maintenance
-6. THE System SHALL NOT have any server-side components that need monitoring or updates
-7. THE System SHALL use only static files (HTML, CSS, JavaScript, JSON)
-8. THE System SHALL generate the search index as part of the existing daily update workflow
-
-### Requirement 7: Search Index Structure
-
-**User Story:** As a developer, I want a well-structured search index that enables fast lookups without loading the full dataset, so that the website performs efficiently.
-
-#### Acceptance Criteria
-
-1. WHEN the search index is created, THE System SHALL include only registration_number, name, father_name, and category fields
-2. WHEN the index is generated, THE System SHALL compress it using gzip to minimize file size
-3. WHEN the index is structured, THE System SHALL use an array format for minimal overhead
-4. THE System SHALL generate the index file to be under 2 MB (compressed)
-5. WHEN a user needs full details, THE System SHALL provide a link to view the complete record in rx.json
-6. THE System SHALL include a version timestamp in the index to detect updates
-7. THE System SHALL NOT duplicate data between the index and the full rx.json file
+1. WHEN the daily GitHub Action runs, THE System SHALL automatically sync data to Supabase
+2. WHEN the website is deployed, THE System SHALL remain online indefinitely on GitHub Pages
+3. THE System SHALL NOT require manual database updates or maintenance
+4. THE System SHALL NOT require server monitoring or management
+5. THE System SHALL handle errors gracefully and log them for review
+6. WHEN Supabase or GitHub Pages have updates, THE System SHALL continue functioning without changes
+7. THE System SHALL NOT require any scheduled maintenance windows
 
 ### Requirement 8: Performance and Optimization
 
@@ -116,79 +118,92 @@ A free, forever-hosted, open-source search website that allows users to quickly 
 #### Acceptance Criteria
 
 1. WHEN the page loads, THE System SHALL achieve a Lighthouse performance score above 90
-2. WHEN searching the index, THE System SHALL use efficient string matching for fast lookups
-3. WHEN rendering results, THE System SHALL limit initial display to 50 results with "Load More" option
+2. WHEN searching the database, THE System SHALL use indexed queries for fast lookups
+3. WHEN rendering results, THE System SHALL limit initial display to 50 results with pagination
 4. THE System SHALL minify all CSS and JavaScript files for faster loading
 5. THE System SHALL use browser caching headers for static assets
-6. THE System SHALL load and parse the search index in under 500 milliseconds
+6. THE System SHALL complete database queries in under 200 milliseconds
 
-### Requirement 9: Accessibility
-
-**User Story:** As a user with accessibility needs, I want the website to be usable with screen readers and keyboard navigation, so that I can access the information independently.
-
-#### Acceptance Criteria
-
-1. WHEN using keyboard navigation, THE System SHALL allow full functionality without a mouse
-2. WHEN using a screen reader, THE System SHALL provide appropriate ARIA labels and roles
-3. THE System SHALL maintain sufficient color contrast (WCAG AA standard)
-4. WHEN forms are used, THE System SHALL provide clear labels and error messages
-5. THE System SHALL support browser zoom up to 200% without breaking layout
-
-### Requirement 10: Open Source and Documentation
-
-**User Story:** As a developer or contributor, I want clear documentation and open-source code, so that I can understand, modify, or contribute to the project.
-
-#### Acceptance Criteria
-
-1. THE System SHALL include a README with setup and deployment instructions
-2. THE System SHALL use a permissive open-source license (MIT or similar)
-3. THE System SHALL include inline code comments for complex logic
-4. THE System SHALL document the search algorithm and data structure
-5. THE System SHALL provide examples of how to customize or extend the search functionality
-
-### Requirement 11: Data Privacy and Security
+### Requirement 9: Data Privacy and Security
 
 **User Story:** As a user, I want to know that my searches are private and the data is secure, so that I can use the service with confidence.
 
 #### Acceptance Criteria
 
-1. THE System SHALL NOT send search queries to any external servers
-2. THE System SHALL NOT collect or store user search history
+1. THE System SHALL NOT log or store user search queries
+2. THE System SHALL NOT collect or track user behavior
 3. THE System SHALL NOT use analytics or tracking scripts
 4. WHEN served over HTTPS, THE System SHALL ensure all data transfers are encrypted
 5. THE System SHALL only display publicly available registration data from TGPC
+6. THE System SHALL use Supabase Row Level Security (RLS) for read-only access
+7. THE System SHALL NOT expose database credentials in client-side code
+
+### Requirement 10: Open Source and Documentation
+
+**User Story:** As a developer, I want clear documentation and open-source code, so that I can understand and modify the project if needed.
+
+#### Acceptance Criteria
+
+1. THE System SHALL include a README with setup and deployment instructions
+2. THE System SHALL use a permissive open-source license (MIT)
+3. THE System SHALL include inline code comments for complex logic
+4. THE System SHALL document the Supabase setup and configuration process
+5. THE System SHALL provide examples of how to customize the search interface
+6. THE System SHALL document the GitHub Actions workflow for data sync
 
 ## Core Principles (Non-Negotiable)
 
 ### 1. Cloud Only
-- **GitHub Pages** for hosting (Microsoft's cloud infrastructure)
-- **GitHub Actions** for automation (cloud-based CI/CD)
-- **CDN delivery** via GitHub's global network
+- **Supabase** for cloud database (PostgreSQL)
+- **GitHub Pages** for website hosting
+- **GitHub Actions** for automation
 - **No local servers** or self-hosted components
 - **100% cloud-native** solution
 
 ### 2. Open Source
-- **MIT License** (or similar permissive license)
+- **MIT License**
 - **Public GitHub repository** with full source code
-- **No proprietary dependencies** or closed-source tools
-- **Community contributions** welcome
-- **Transparent operation** - all code visible and auditable
+- **Supabase** is open source (can self-host if needed in future)
+- **No proprietary dependencies**
+- **Transparent operation** - all code visible
 
 ### 3. Free Forever
+- **Supabase Free Tier** - 500 MB database, 2 GB bandwidth/month (forever)
 - **GitHub Pages** - Free for public repositories (forever)
-- **GitHub Actions** - 2,000 minutes/month free (more than enough for daily updates)
+- **GitHub Actions** - 2,000 minutes/month free (more than enough)
 - **No credit card** required
 - **No trial periods** or expiration
 - **No hidden costs** or premium features
-- **No paid APIs** or third-party services
 
 ## Technical Constraints
 
-- Must use only free services (GitHub Pages, GitHub Actions)
-- Must be 100% static (no backend servers, no databases)
+- Must use Supabase free tier (500 MB database, 2 GB bandwidth/month)
+- Must use GitHub Pages for hosting (free)
+- Must use GitHub Actions for automation (within free tier limits)
 - Must work with the existing rx.json format
 - Must handle 82,000+ records efficiently
-- Must be deployable with a single GitHub Actions workflow
-- Must not require any API keys, credentials, or paid services
+- Must not require any paid services or API keys
 - Must work in all modern browsers (Chrome, Firefox, Safari, Edge)
-- Must remain functional even if the repository is forked or cloned
+- Must function on weak network connections (2G/3G)
+- Must be optimized for personal use (1-10 users maximum)
+
+## Use Case Scenario
+
+**Typical User Flow:**
+1. User opens website on mobile with weak network
+2. Website loads in 2 seconds (no large downloads)
+3. User types "TS082612" in search box
+4. System queries Supabase database (few bytes sent)
+5. Results returned in 500ms (only matching record, few KB)
+6. User sees: Registration, Name, Father Name, Category
+7. User closes browser
+8. Next day: Repeat (no data to download, instant search)
+
+**Daily Automation:**
+1. GitHub Action runs at scheduled time (IST business hours)
+2. Fetches latest data from TGPC portal
+3. Updates rx.json in repository
+4. Syncs changes to Supabase database
+5. Logs results (new records, errors)
+6. Website automatically shows updated data
+7. No manual intervention required

@@ -149,6 +149,15 @@ jobs:
         echo "📦 Syncing data to SQLite database..."
         python scripts/init_database.py
     
+    - name: Sync to Supabase
+      if: steps.check_update.outputs.already_updated == 'false' && steps.changes.outputs.changes == 'true'
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      run: |
+        echo "☁️ Syncing data to Supabase cloud database..."
+        python scripts/sync_to_supabase.py
+    
     - name: Commit and push changes
       if: steps.check_update.outputs.already_updated == 'false' && steps.changes.outputs.changes == 'true'
       run: |
