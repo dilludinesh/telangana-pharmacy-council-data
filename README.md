@@ -6,17 +6,18 @@
 
 This repository **automatically updates daily** with the latest pharmacist data using GitHub Actions:
 
-- ✅ **Runs weekdays during business hours (11 AM - 3 PM UTC)** automatically
+- ✅ **Runs weekdays during business hours** automatically
 - ✅ **Fetches latest data** from TGPC website (Total Records only)
 - ✅ **Validates and removes duplicates** automatically  
+- ✅ **Syncs to Supabase cloud database** (PostgreSQL)
 - ✅ **Updates `data/rx.json`** with clean data
 - ✅ **Commits changes** automatically with update summary
 - ✅ **Zero maintenance** required
 
 ## 📊 Current Data
 
-- **File**: `data/rx.json`
-- **Records**: 82,605+ pharmacists (updated daily)
+- **Cloud Database**: Supabase (PostgreSQL) - 82,619+ records
+- **JSON Backup**: `data/rx.json` (updated daily)
 - **Fields**: `serial_number`, `registration_number`, `name`, `father_name`, `category`
 - **Source**: https://www.pharmacycouncil.telangana.gov.in/pharmacy/srchpharmacisttotal
 
@@ -47,7 +48,8 @@ python -m tgpc.cli.commands sync --dataset data/rx.json
 
 ```
 tgpc/
-├── data/rx.json              # Main pharmacist dataset (auto-updated)
+├── data/rx.json              # JSON backup (auto-updated)
+├── scripts/                  # Supabase sync scripts
 ├── tgpc/                     # Python package
 │   ├── automation/           # Daily update automation
 │   ├── cli/                  # Command-line interface
@@ -56,18 +58,18 @@ tgpc/
 │   ├── models/               # Data models
 │   ├── storage/              # File management
 │   └── utils/                # Utilities
-├── .github/workflows/        # GitHub Actions automation
-└── requirements.txt          # Dependencies
+└── .github/workflows/        # GitHub Actions automation
 ```
 
 ## ⚙️ How Automation Works
 
-1. **GitHub Actions** triggers on weekdays during business hours (randomized 11 AM - 3 PM UTC)
+1. **GitHub Actions** triggers on weekdays during business hours
 2. **Extracts data** from TGPC Total Records URL only
 3. **Validates integrity** and removes duplicates
-4. **Updates `data/rx.json`** if changes detected
-5. **Commits changes** with detailed summary
-6. **Pushes to repository** automatically
+4. **Syncs to Supabase** cloud database (PostgreSQL)
+5. **Updates `data/rx.json`** if changes detected
+6. **Commits changes** with detailed summary
+7. **Pushes to repository** automatically
 
 ## 📈 Update History
 
@@ -84,10 +86,16 @@ Check the commit history to see weekday updates with summaries like:
 • Data integrity: 0.998
 ```
 
-## 🎯 Data Usage
+## 🎯 Data Access
 
-The `data/rx.json` file contains clean, validated pharmacist registry data that's updated daily. Perfect for:
+**Cloud Database (Recommended)**: Query the Supabase PostgreSQL database for real-time access
+- Fast, scalable, globally accessible
+- No downloads required
+- Always up-to-date
 
+**JSON Backup**: `data/rx.json` for offline use or archival purposes
+
+Perfect for:
 - Research and analysis
 - Data science projects  
 - Registry verification

@@ -144,12 +144,6 @@ jobs:
           "
         fi
     
-    - name: Update database
-      if: steps.check_update.outputs.already_updated == 'false' && steps.changes.outputs.changes == 'true'
-      run: |
-        echo "📦 Syncing data to SQLite database..."
-        python scripts/init_database.py
-    
     - name: Sync to Supabase
       if: steps.check_update.outputs.already_updated == 'false' && steps.changes.outputs.changes == 'true'
       env:
@@ -165,8 +159,8 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         
-        # Add data files (JSON and database)
-        git add data/rx.json data/pharmacists.db
+        # Add data files (JSON only)
+        git add data/rx.json
         
         # Create commit message with update details
         git commit -m "🤖 Daily data update - $(date '+%Y-%m-%d')

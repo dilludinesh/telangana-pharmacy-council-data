@@ -6,9 +6,5 @@ python-dotenv>=1.0.0
 rich>=13.0.0
 tenacity>=8.2.0
 
-# Supabase sync
+# Supabase cloud database
 supabase>=2.0.0
-
-# API dependencies (optional, for web interface)
-flask>=3.0.0
-flask-cors>=4.0.0

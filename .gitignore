@@ -27,6 +27,12 @@ data/metadata/
 *.tmp
 *.log
 
+# Database files (we use Supabase cloud instead)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
 # IDE
 .idea/
 .vscode/
