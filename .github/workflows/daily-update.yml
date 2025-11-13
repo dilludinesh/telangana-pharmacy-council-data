@@ -229,11 +229,6 @@ jobs:
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
         fi
-        
-        echo "### Data Source" >> $GITHUB_STEP_SUMMARY
-        echo "- **URL:** https://www.pharmacycouncil.telangana.gov.in/pharmacy/srchpharmacisttotal" >> $GITHUB_STEP_SUMMARY
-        echo "- **Method:** Single request to Total Records (server-friendly)" >> $GITHUB_STEP_SUMMARY
-        echo "- **Fields:** serial_number, registration_number, name, father_name, category" >> $GITHUB_STEP_SUMMARY
     
     - name: Notify on failure
       if: failure()
