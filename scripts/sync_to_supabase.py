@@ -67,7 +67,7 @@ def sync_records(supabase: Client, records: list) -> dict:
         
         try:
             # Upsert batch (insert new or update existing based on registration_number)
-            response = supabase.table('pharmacists').upsert(
+            response = supabase.table('rx').upsert(
                 batch,
                 on_conflict='registration_number'
             ).execute()

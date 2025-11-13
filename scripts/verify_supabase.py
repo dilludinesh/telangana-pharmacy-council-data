@@ -28,13 +28,13 @@ print("=" * 60)
 supabase = create_client(url, key)
 
 # Get total count
-response = supabase.table('pharmacists').select('*', count='exact').limit(1).execute()
+response = supabase.table('rx').select('*', count='exact').limit(1).execute()
 total = response.count if hasattr(response, 'count') else 0
 
 print(f"✅ Total records in Supabase: {total:,}")
 
 # Get a sample record
-sample = supabase.table('pharmacists').select('*').limit(1).execute()
+sample = supabase.table('rx').select('*').limit(1).execute()
 if sample.data:
     record = sample.data[0]
     print(f"\n📋 Sample record:")
@@ -43,7 +43,7 @@ if sample.data:
     print(f"   Category: {record.get('category')}")
 
 # Get category breakdown
-categories = supabase.table('pharmacists').select('category').execute()
+categories = supabase.table('rx').select('category').execute()
 if categories.data:
     from collections import Counter
     cat_counts = Counter(r['category'] for r in categories.data)

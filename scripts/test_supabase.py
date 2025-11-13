@@ -49,9 +49,9 @@ def test_connection():
     
     # Test table access
     try:
-        response = supabase.table('pharmacists').select('count', count='exact').execute()
+        response = supabase.table('rx').select('count', count='exact').execute()
         count = response.count if hasattr(response, 'count') else 0
-        print(f"✓ Table 'pharmacists' exists with {count} records")
+        print(f"✓ Table 'rx' exists with {count} records")
     except Exception as e:
         print(f"❌ Table access failed: {e}")
         print("\nMake sure you've run the SQL schema in Supabase SQL Editor:")

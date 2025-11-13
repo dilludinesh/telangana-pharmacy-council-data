@@ -28,7 +28,7 @@ TGPC Portal → GitHub Actions → rx.json → Supabase Database
 ### Supabase Database Schema
 
 ```sql
-CREATE TABLE pharmacists (
+CREATE TABLE rx (
     id BIGSERIAL PRIMARY KEY,
     serial_number INTEGER,
     registration_number TEXT NOT NULL UNIQUE,
@@ -40,9 +40,9 @@ CREATE TABLE pharmacists (
 );
 
 -- Indexes for fast search
-CREATE INDEX idx_registration ON pharmacists(registration_number);
-CREATE INDEX idx_name ON pharmacists(name);
-CREATE INDEX idx_father ON pharmacists(father_name);
+CREATE INDEX idx_registration ON rx(registration_number);
+CREATE INDEX idx_name ON rx(name);
+CREATE INDEX idx_father ON rx(father_name);
 ```
 
 
@@ -68,7 +68,7 @@ def sync_to_supabase():
         records = json.load(f)
     
     for record in records:
-        supabase.table('pharmacists').upsert(record).execute()
+        supabase.table('rx').upsert(record).execute()
     
     print(f"Synced {len(records)} records")
 ```
@@ -122,7 +122,7 @@ async function search() {
     const query = document.getElementById('search').value;
     
     const { data } = await supabase
-        .from('pharmacists')
+        .from('rx')
         .select('*')
         .or(`registration_number.ilike.%${query}%,name.ilike.%${query}%`)
         .limit(50);

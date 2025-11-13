@@ -79,10 +79,10 @@ Follow these steps one at a time. Don't worry, I'll guide you through each one!
 **What to do:**
 1. Look at the left sidebar in Supabase
 2. Click the **"Table Editor"** icon (looks like a table/grid)
-3. You should see a table named **"pharmacists"** in the list
+3. You should see a table named **"rx"** in the list
 4. Click on it
 
-**What you should see:** An empty table with columns like `id`, `registration_number`, `name`, etc.
+**What you should see:** An empty table named **"rx"** with columns like `id`, `registration_number`, `name`, etc.
 
 **When done:** Perfect! Come back here for Step 7.
 
@@ -183,8 +183,8 @@ Follow these steps one at a time. Don't worry, I'll guide you through each one!
 
 **What to check:**
 - ✅ You have a Supabase account
-- ✅ You created a project named "tgpc-search"
-- ✅ You ran the SQL code and created the "pharmacists" table
+- ✅ You created a project named "tgpc"
+- ✅ You ran the SQL code and created the "rx" table
 - ✅ You saved 3 credentials in your notes
 - ✅ You added 3 secrets to GitHub:
   - SUPABASE_URL

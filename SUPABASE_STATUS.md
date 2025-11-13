@@ -43,8 +43,8 @@ You can verify the data is in Supabase by:
 **Option A: Check Supabase Dashboard**
 1. Go to your Supabase project dashboard
 2. Click "Table Editor" in the left sidebar
-3. Click on the "pharmacists" table
-4. You should see 82,617 records!
+3. Click on the "rx" table
+4. You should see 82,619 records!
 
 **Option B: Run Verification Script Locally**
 ```bash
