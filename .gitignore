@@ -12,6 +12,8 @@ __pycache__/
 build/
 dist/
 .Python
+*.pyc
+*.pyo
 
 # Virtual environments
 venv/
@@ -27,17 +29,21 @@ data/metadata/
 *.tmp
 *.log
 
-# Database files (we use Supabase cloud instead)
+# Database files (we use Supabase cloud)
 *.db
 *.db-journal
 *.sqlite
 *.sqlite3
 
-# IDE
+# IDE and editors
 .idea/
 .vscode/
+.kiro/
 *.swp
+*.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
+*.DS_Store
