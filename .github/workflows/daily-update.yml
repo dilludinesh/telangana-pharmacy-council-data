@@ -192,43 +192,6 @@ jobs:
         echo "- **Removed Records:** ${{ steps.update.outputs.removed_records }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Duplicates Removed:** ${{ steps.update.outputs.duplicates_removed }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Data Integrity Score:** ${{ steps.update.outputs.integrity_score }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        # Display new records if any
-        if [ "${{ steps.changes.outputs.changes }}" == "true" ]; then
-          echo "### 🆕 New Records" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Load saved new records from file
-          if [ -f /tmp/new_records.json ]; then
-            python -c "
-        import json
-        
-        # Load new records from saved file
-        try:
-            with open('/tmp/new_records.json', 'r') as f:
-                new_records = json.load(f)
-        except:
-            new_records = []
-        
-        # Display new records in markdown table
-        if new_records:
-            print('| Registration | Name | Father Name | Category |')
-            print('|--------------|------|-------------|----------|')
-            for record in new_records:
-                reg = record.get('registration_number', 'N/A')
-                name = record.get('name', 'N/A')
-                father = record.get('father_name', 'N/A')
-                category = record.get('category', 'N/A')
-                print(f'| {reg} | {name} | {father} | {category} |')
-        else:
-            print('_No new records found_')
-            " >> $GITHUB_STEP_SUMMARY
-          else
-            echo "_Could not load new records data_" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-        fi
     
     - name: Notify on failure
       if: failure()
