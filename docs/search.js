@@ -2,30 +2,102 @@
 const SUPABASE_URL = 'https://vhgpyvzgmvhijqgsapnk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoZ3B5dnpnbXZoaWpxZ3NhcG5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4Njc1MjAsImV4cCI6MjA3ODQ0MzUyMH0.Cp4oyw2M72RCFnsKeLg49hSMvGs4pm6-ul0sFmAasRs';
 
-// Initialize Supabase client
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// DOM elements
-const searchInput = document.getElementById('searchInput');
-const resultsDiv = document.getElementById('results');
-const loadingDiv = document.getElementById('loading');
-const errorDiv = document.getElementById('error');
-const filterBtns = document.querySelectorAll('.filter-btn');
-
 // State
-let currentCategory = 'all';
+let currentResults = [];
+let currentFilters = {
+    category: 'all'
+};
+let currentSort = 'reg-desc';
 let searchTimeout;
 
-// Search function with instant results
-async function search(query) {
-    resultsDiv.style.display = 'none';
-    errorDiv.innerHTML = '';
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    setupEventListeners();
+    loadAnalytics();
+});
+
+function setupEventListeners() {
+    // Search input with debounce
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            if (e.target.value.trim().length >= 2) {
+                performSearch();
+            }
+        }, 300);
+    });
+
+    // Enter key to search
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const filterType = btn.dataset.filter;
+            const filterValue = btn.dataset.value;
+            
+            // Update active state
+            document.querySelectorAll(`[data-filter="${filterType}"]`).forEach(b => {
+                b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            
+            // Update filter
+            currentFilters[filterType] = filterValue;
+            
+            // Re-search if there's a query
+            const query = document.getElementById('searchInput').value.trim();
+            if (query.length >= 2) {
+                performSearch();
+            }
+        });
+    });
+}
+
+// Load analytics/statistics
+async function loadAnalytics() {
+    try {
+        // These are static values based on known data
+        // You can make them dynamic by querying Supabase if needed
+        document.getElementById('totalRecords').textContent = '82,619';
+        document.getElementById('bpharmCount').textContent = '57,539';
+        document.getElementById('dpharmCount').textContent = '16,112';
+        document.getElementById('mpharmCount').textContent = '2,354';
+        document.getElementById('pharmdCount').textContent = '6,352';
+        
+        // Set last updated date
+        const today = new Date().toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+        });
+        document.getElementById('lastUpdated').textContent = today;
+    } catch (error) {
+        console.error('Error loading analytics:', error);
+    }
+}
+
+// Perform search
+async function performSearch() {
+    const query = document.getElementById('searchInput').value.trim();
+    const loadingDiv = document.getElementById('loading');
+    const errorDiv = document.getElementById('error');
+    const resultsPanel = document.getElementById('resultsPanel');
     
     if (query.length < 2) {
+        resultsPanel.style.display = 'none';
         return;
     }
     
     loadingDiv.style.display = 'block';
+    resultsPanel.style.display = 'none';
+    errorDiv.innerHTML = '';
     
     try {
         let queryBuilder = supabase
@@ -34,18 +106,19 @@ async function search(query) {
             .or(`registration_number.ilike.%${query}%,name.ilike.%${query}%,father_name.ilike.%${query}%`);
         
         // Apply category filter
-        if (currentCategory !== 'all') {
-            queryBuilder = queryBuilder.eq('category', currentCategory);
+        if (currentFilters.category !== 'all') {
+            queryBuilder = queryBuilder.eq('category', currentFilters.category);
         }
         
-        const { data, error } = await queryBuilder
-            .order('registration_number', { ascending: false })
-            .limit(100);
+        const { data, error } = await queryBuilder.limit(200);
         
         if (error) throw error;
         
+        currentResults = data;
         loadingDiv.style.display = 'none';
-        displayResults(data);
+        resultsPanel.style.display = 'block';
+        
+        sortResults();
         
     } catch (error) {
         console.error('Search error:', error);
@@ -54,12 +127,40 @@ async function search(query) {
     }
 }
 
-// Display results in table format
+// Sort results
+function sortResults() {
+    const sortValue = document.getElementById('sortSelect').value;
+    currentSort = sortValue;
+    
+    let sorted = [...currentResults];
+    
+    switch(sortValue) {
+        case 'reg-desc':
+            sorted.sort((a, b) => b.registration_number.localeCompare(a.registration_number));
+            break;
+        case 'reg-asc':
+            sorted.sort((a, b) => a.registration_number.localeCompare(b.registration_number));
+            break;
+        case 'name-asc':
+            sorted.sort((a, b) => a.name.localeCompare(b.name));
+            break;
+        case 'name-desc':
+            sorted.sort((a, b) => b.name.localeCompare(a.name));
+            break;
+    }
+    
+    displayResults(sorted);
+}
+
+// Display results
 function displayResults(data) {
-    resultsDiv.style.display = 'block';
+    const resultsDiv = document.getElementById('results');
+    const resultsCount = document.getElementById('resultsCount');
+    
+    resultsCount.textContent = data.length.toLocaleString();
     
     if (data.length === 0) {
-        resultsDiv.innerHTML = '<div class="no-results">No results found</div>';
+        resultsDiv.innerHTML = '<div class="no-results">No results found. Try different search terms or filters.</div>';
         return;
     }
     
@@ -67,7 +168,7 @@ function displayResults(data) {
         <table class="results-table">
             <thead>
                 <tr>
-                    <th>Registration</th>
+                    <th>Registration Number</th>
                     <th>Name</th>
                     <th>Father's Name</th>
                     <th>Category</th>
@@ -79,7 +180,7 @@ function displayResults(data) {
                         <td><span class="reg-number">${record.registration_number}</span></td>
                         <td>${record.name}</td>
                         <td>${record.father_name || 'N/A'}</td>
-                        <td><span class="category-badge">${record.category}</span></td>
+                        <td><span class="category-badge ${record.category.toLowerCase()}">${record.category}</span></td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -89,33 +190,37 @@ function displayResults(data) {
     resultsDiv.innerHTML = html;
 }
 
-// Debounce function - reduced delay for faster response
-function debounce(func, delay) {
-    return function(...args) {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => func.apply(this, args), delay);
-    };
-}
-
-// Event listeners
-searchInput.addEventListener('input', debounce((e) => {
-    search(e.target.value.trim());
-}, 300)); // Reduced from 500ms to 300ms
-
-// Filter buttons
-filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentCategory = btn.dataset.category;
-        
-        // Re-run search if there's a query
-        const query = searchInput.value.trim();
-        if (query.length >= 2) {
-            search(query);
-        }
+// Export results to CSV
+function exportResults() {
+    if (currentResults.length === 0) {
+        alert('No results to export. Please perform a search first.');
+        return;
+    }
+    
+    // Create CSV content
+    const headers = ['Registration Number', 'Name', 'Father\'s Name', 'Category'];
+    const rows = currentResults.map(record => [
+        record.registration_number,
+        record.name,
+        record.father_name || 'N/A',
+        record.category
+    ]);
+    
+    let csvContent = headers.join(',') + '\n';
+    rows.forEach(row => {
+        csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
     });
-});
-
-// Focus search input
-searchInput.focus();
+    
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `tgpc_rx_search_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
