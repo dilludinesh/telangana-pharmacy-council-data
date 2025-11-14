@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TGPC Pharmacist Search</title>
+    <title>TGPC Rx Search</title>
     <style>
         * {
             margin: 0;
@@ -13,130 +13,163 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f7fa;
             min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         .header {
             text-align: center;
-            color: white;
-            margin-bottom: 40px;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .search-box {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             margin-bottom: 30px;
         }
 
-        .search-input {
-            width: 100%;
-            padding: 15px 20px;
-            font-size: 1.1rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            outline: none;
-            transition: border-color 0.3s;
+        .header h1 {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-weight: 600;
         }
 
-        .search-input:focus {
-            border-color: #667eea;
+        .header p {
+            font-size: 1rem;
+            color: #7f8c8d;
         }
 
-        .search-hint {
-            margin-top: 10px;
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .stats {
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            border-radius: 8px;
-            padding: 15px 20px;
-            color: white;
-            text-align: center;
+        .search-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             margin-bottom: 20px;
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
+        .search-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 18px;
+            font-size: 1rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #3498db;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #e1e8ed;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            color: #2c3e50;
+        }
+
+        .filter-btn:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .filter-btn.active {
+            background: #3498db;
             color: white;
-            font-size: 1.1rem;
+            border-color: #3498db;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 8px;
+            padding: 12px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            text-align: center;
+            color: #2c3e50;
+            font-size: 0.95rem;
         }
 
         .results {
             background: white;
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
-        .result-item {
-            padding: 20px;
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .results-table thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #e1e8ed;
+        }
+
+        .results-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .results-table td {
+            padding: 14px 12px;
             border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s;
+            color: #2c3e50;
+            font-size: 0.95rem;
         }
 
-        .result-item:last-child {
-            border-bottom: none;
-        }
-
-        .result-item:hover {
+        .results-table tr:hover {
             background: #f8f9fa;
         }
 
-        .result-reg {
-            font-size: 1.2rem;
+        .reg-number {
             font-weight: 600;
-            color: #667eea;
-            margin-bottom: 8px;
+            color: #3498db;
         }
 
-        .result-name {
-            font-size: 1.1rem;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .result-details {
-            font-size: 0.95rem;
-            color: #666;
-        }
-
-        .result-category {
+        .category-badge {
             display: inline-block;
-            padding: 4px 12px;
-            background: #667eea;
-            color: white;
-            border-radius: 20px;
+            padding: 4px 10px;
+            background: #e8f4f8;
+            color: #3498db;
+            border-radius: 12px;
             font-size: 0.85rem;
-            margin-top: 8px;
+            font-weight: 500;
         }
 
         .no-results {
             text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .loading {
+            text-align: center;
             padding: 40px;
-            color: #666;
+            color: #7f8c8d;
         }
 
         .error {
@@ -147,13 +180,26 @@
             margin-bottom: 20px;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .header h1 {
-                font-size: 1.8rem;
+                font-size: 1.5rem;
             }
-            
-            .search-box {
-                padding: 20px;
+
+            .search-row {
+                flex-direction: column;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .results-table {
+                font-size: 0.85rem;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 10px 8px;
             }
         }
     </style>
@@ -161,24 +207,30 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔍 TGPC Pharmacist Search</h1>
-            <p>Search 82,000+ registered pharmacists in Telangana</p>
+            <h1>🔍 TGPC Rx Search</h1>
+            <p>Search 82,619 registered Rx in Telangana</p>
         </div>
 
         <div class="stats" id="stats">
-            Loading database...
+            📊 Total Records: 82,619
         </div>
 
-        <div class="search-box">
-            <input 
-                type="text" 
-                class="search-input" 
-                id="searchInput" 
-                placeholder="Search by registration number or name..."
-                autocomplete="off"
-            >
-            <div class="search-hint">
-                Try: "TS001234" or "Kumar" or "BPharm"
+        <div class="search-section">
+            <div class="search-row">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput" 
+                    placeholder="Search by registration number, name, or father's name..."
+                    autocomplete="off"
+                >
+            </div>
+            <div class="filter-group" style="margin-top: 15px;">
+                <button class="filter-btn active" data-category="all">All</button>
+                <button class="filter-btn" data-category="BPharm">BPharm</button>
+                <button class="filter-btn" data-category="DPharm">DPharm</button>
+                <button class="filter-btn" data-category="MPharm">MPharm</button>
+                <button class="filter-btn" data-category="PharmD">PharmD</button>
             </div>
         </div>
 

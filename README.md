@@ -1,10 +1,10 @@
-# TGPC Pharmacist Registry
+# TGPC Rx Registry
 
-**Automated daily extraction of pharmacist registry data from Telangana Government Pharmacy Council (TGPC)**
+**Automated daily extraction of Rx registry data from Telangana Government Pharmacy Council (TGPC)**
 
 ## 🤖 Automatic Daily Updates
 
-This repository **automatically updates daily** with the latest pharmacist data using GitHub Actions:
+This repository **automatically updates daily** with the latest Rx data using GitHub Actions:
 
 - ✅ **Runs weekdays during business hours** automatically
 - ✅ **Fetches latest data** from TGPC website (Total Records only)
