@@ -70,19 +70,25 @@ async function loadAnalytics() {
         document.getElementById('mpharmCount').textContent = '...';
         document.getElementById('pharmdCount').textContent = '...';
         
-        // Query Supabase for real-time counts
-        const { data, error } = await supabase
+        // Get total count
+        const { count: total, error: totalError } = await supabase
             .from('rx')
-            .select('category');
+            .select('*', { count: 'exact', head: true });
         
-        if (error) throw error;
+        if (totalError) throw totalError;
         
-        // Calculate statistics
-        const total = data.length;
-        const bpharm = data.filter(r => r.category === 'BPharm').length;
-        const dpharm = data.filter(r => r.category === 'DPharm').length;
-        const mpharm = data.filter(r => r.category === 'MPharm').length;
-        const pharmd = data.filter(r => r.category === 'PharmD').length;
+        // Get counts by category
+        const [bpharmRes, dpharmRes, mpharmRes, pharmdRes] = await Promise.all([
+            supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', 'BPharm'),
+            supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', 'DPharm'),
+            supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', 'MPharm'),
+            supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', 'PharmD')
+        ]);
+        
+        const bpharm = bpharmRes.count || 0;
+        const dpharm = dpharmRes.count || 0;
+        const mpharm = mpharmRes.count || 0;
+        const pharmd = pharmdRes.count || 0;
         
         // Update UI with real counts
         document.getElementById('totalRecords').textContent = total.toLocaleString();
