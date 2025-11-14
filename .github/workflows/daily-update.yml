@@ -1,4 +1,4 @@
-name: Data Fetch
+name: Rx Auto Sync
 
 on:
   schedule:
