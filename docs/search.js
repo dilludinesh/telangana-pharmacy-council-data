@@ -184,7 +184,7 @@ async function performSearch() {
             queryBuilder = queryBuilder.eq('category', currentFilters.category);
         }
         
-        const { data, error } = await queryBuilder.limit(200);
+        const { data, error } = await queryBuilder.limit(1000);
         
         if (error) throw error;
         
