@@ -153,14 +153,20 @@ jobs:
         echo "☁️ Syncing data to Supabase cloud database..."
         python scripts/sync_to_supabase.py
     
+    - name: Update website analytics
+      if: steps.check_update.outputs.already_updated == 'false' && steps.changes.outputs.changes == 'true'
+      run: |
+        echo "📊 Updating website analytics..."
+        python scripts/update_analytics.py
+    
     - name: Commit and push changes
       if: steps.check_update.outputs.already_updated == 'false' && steps.changes.outputs.changes == 'true'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         
-        # Add data files (JSON only)
-        git add data/rx.json
+        # Add data files and updated website
+        git add data/rx.json docs/index.html
         
         # Create commit message with update details
         git commit -m "🤖 Daily data update - $(date '+%Y-%m-%d')
