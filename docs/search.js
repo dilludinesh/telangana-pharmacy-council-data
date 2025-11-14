@@ -186,9 +186,10 @@ function displayAnalytics(stats) {
         day: 'numeric', 
         year: 'numeric' 
     });
-    const timeStr = now.toLocaleTimeString('en-US', { 
+    const timeStr = now.toLocaleTimeString('en-GB', { 
         hour: '2-digit', 
-        minute: '2-digit'
+        minute: '2-digit',
+        hour12: false
     });
     document.getElementById('lastUpdated').textContent = `${dateStr} at ${timeStr}`;
 }
