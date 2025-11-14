@@ -18,6 +18,7 @@ const RESULTS_PER_PAGE = 100;
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
+    checkConnection();
     loadAnalytics();
 });
 
@@ -61,6 +62,33 @@ function setupEventListeners() {
             }
         });
     });
+}
+
+// Check database connection status
+async function checkConnection() {
+    const statusEl = document.getElementById('connectionStatus');
+    
+    try {
+        statusEl.className = 'header-status connecting';
+        statusEl.innerHTML = '<span class="status-dot"></span><span>Connecting...</span>';
+        
+        // Try a simple query to check connection
+        const { data, error } = await supabase
+            .from('rx')
+            .select('id')
+            .limit(1);
+        
+        if (error) throw error;
+        
+        // Connected successfully
+        statusEl.className = 'header-status connected';
+        statusEl.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
+        
+    } catch (error) {
+        console.error('Connection error:', error);
+        statusEl.className = 'header-status error';
+        statusEl.innerHTML = '<span class="status-dot"></span><span>Connection Error</span>';
+    }
 }
 
 // Load analytics with localStorage caching for instant display
@@ -151,13 +179,18 @@ function displayAnalytics(stats) {
     document.getElementById('mpharmCount').textContent = stats.mpharm.toLocaleString();
     document.getElementById('pharmdCount').textContent = stats.pharmd.toLocaleString();
     
-    // Set last updated date
-    const today = new Date().toLocaleDateString('en-US', { 
+    // Set last updated date with time
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { 
         month: 'short', 
         day: 'numeric', 
         year: 'numeric' 
     });
-    document.getElementById('lastUpdated').textContent = today;
+    const timeStr = now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit'
+    });
+    document.getElementById('lastUpdated').textContent = `${dateStr} at ${timeStr}`;
 }
 
 // Perform search

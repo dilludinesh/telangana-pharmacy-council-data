@@ -71,24 +71,59 @@
             align-items: center;
             gap: 8px;
             padding: 6px 12px;
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
             border-radius: 6px;
             font-size: 0.8125rem;
+            transition: all 0.3s;
+        }
+
+        .header-status.connected {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
             color: #166534;
+        }
+
+        .header-status.connecting {
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            color: #92400e;
+        }
+
+        .header-status.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
         }
 
         .status-dot {
             width: 6px;
             height: 6px;
-            background: #10b981;
             border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .header-status.connected .status-dot {
+            background: #10b981;
             animation: pulse 2s infinite;
+        }
+
+        .header-status.connecting .status-dot {
+            background: #f59e0b;
+            animation: pulse 1s infinite;
+        }
+
+        .header-status.error .status-dot {
+            background: #ef4444;
         }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
+        }
+
+        .updated-time {
+            font-size: 0.75rem;
+            color: #71717a;
+            margin-top: 2px;
         }
 
         /* Main Container */
@@ -448,12 +483,12 @@
                 <div class="brand-icon">Rx</div>
                 <div class="brand-text">
                     <h1>TGPC Registry</h1>
-                    <p>Telangana Pharmacy Council</p>
+                    <p>Updated: <span id="lastUpdated">Loading...</span></p>
                 </div>
             </div>
-            <div class="header-status">
+            <div class="header-status" id="connectionStatus">
                 <span class="status-dot"></span>
-                <span>Live Database</span>
+                <span>Connecting...</span>
             </div>
         </div>
     </header>
