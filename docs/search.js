@@ -60,24 +60,47 @@ function setupEventListeners() {
     });
 }
 
-// Load analytics/statistics in real-time from Supabase
+// Load analytics with localStorage caching for instant display
 async function loadAnalytics() {
+    const CACHE_KEY = 'tgpc_analytics';
+    const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+    
     try {
-        // Show loading state
-        document.getElementById('totalRecords').textContent = '...';
-        document.getElementById('bpharmCount').textContent = '...';
-        document.getElementById('dpharmCount').textContent = '...';
-        document.getElementById('mpharmCount').textContent = '...';
-        document.getElementById('pharmdCount').textContent = '...';
+        // Try to load from cache first
+        const cached = localStorage.getItem(CACHE_KEY);
+        const now = Date.now();
         
-        // Get total count
+        if (cached) {
+            const { data, timestamp } = JSON.parse(cached);
+            const age = now - timestamp;
+            
+            // Display cached data immediately
+            displayAnalytics(data);
+            
+            // If cache is fresh (less than 1 hour old), we're done
+            if (age < CACHE_DURATION) {
+                console.log('✓ Analytics loaded from cache (age: ' + Math.round(age / 60000) + ' min)');
+                return;
+            }
+            
+            console.log('Cache expired, fetching fresh data...');
+        } else {
+            // No cache, show loading state
+            document.getElementById('totalRecords').textContent = '...';
+            document.getElementById('bpharmCount').textContent = '...';
+            document.getElementById('dpharmCount').textContent = '...';
+            document.getElementById('mpharmCount').textContent = '...';
+            document.getElementById('pharmdCount').textContent = '...';
+        }
+        
+        // Fetch fresh data from Supabase
         const { count: total, error: totalError } = await supabase
             .from('rx')
             .select('*', { count: 'exact', head: true });
         
         if (totalError) throw totalError;
         
-        // Get counts by category
+        // Get counts by category in parallel
         const [bpharmRes, dpharmRes, mpharmRes, pharmdRes] = await Promise.all([
             supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', 'BPharm'),
             supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', 'DPharm'),
@@ -85,37 +108,53 @@ async function loadAnalytics() {
             supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', 'PharmD')
         ]);
         
-        const bpharm = bpharmRes.count || 0;
-        const dpharm = dpharmRes.count || 0;
-        const mpharm = mpharmRes.count || 0;
-        const pharmd = pharmdRes.count || 0;
+        const stats = {
+            total: total,
+            bpharm: bpharmRes.count || 0,
+            dpharm: dpharmRes.count || 0,
+            mpharm: mpharmRes.count || 0,
+            pharmd: pharmdRes.count || 0
+        };
         
-        // Update UI with real counts
-        document.getElementById('totalRecords').textContent = total.toLocaleString();
-        document.getElementById('bpharmCount').textContent = bpharm.toLocaleString();
-        document.getElementById('dpharmCount').textContent = dpharm.toLocaleString();
-        document.getElementById('mpharmCount').textContent = mpharm.toLocaleString();
-        document.getElementById('pharmdCount').textContent = pharmd.toLocaleString();
+        // Save to cache
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            data: stats,
+            timestamp: now
+        }));
         
-        // Set last updated date
-        const today = new Date().toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric', 
-            year: 'numeric' 
-        });
-        document.getElementById('lastUpdated').textContent = today;
+        // Display fresh data
+        displayAnalytics(stats);
         
-        console.log('✓ Analytics loaded:', { total, bpharm, dpharm, mpharm, pharmd });
+        console.log('✓ Analytics loaded from Supabase and cached:', stats);
         
     } catch (error) {
         console.error('Error loading analytics:', error);
         // Fallback to approximate values if query fails
-        document.getElementById('totalRecords').textContent = '82,621';
-        document.getElementById('bpharmCount').textContent = '57,543';
-        document.getElementById('dpharmCount').textContent = '16,112';
-        document.getElementById('mpharmCount').textContent = '2,354';
-        document.getElementById('pharmdCount').textContent = '6,352';
+        displayAnalytics({
+            total: 82621,
+            bpharm: 57543,
+            dpharm: 16112,
+            mpharm: 2354,
+            pharmd: 6352
+        });
     }
+}
+
+// Display analytics on the page
+function displayAnalytics(stats) {
+    document.getElementById('totalRecords').textContent = stats.total.toLocaleString();
+    document.getElementById('bpharmCount').textContent = stats.bpharm.toLocaleString();
+    document.getElementById('dpharmCount').textContent = stats.dpharm.toLocaleString();
+    document.getElementById('mpharmCount').textContent = stats.mpharm.toLocaleString();
+    document.getElementById('pharmdCount').textContent = stats.pharmd.toLocaleString();
+    
+    // Set last updated date
+    const today = new Date().toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+    });
+    document.getElementById('lastUpdated').textContent = today;
 }
 
 // Perform search
