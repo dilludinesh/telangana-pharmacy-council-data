@@ -6,11 +6,14 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // State
 let currentResults = [];
+let displayedResults = [];
 let currentFilters = {
     category: 'all'
 };
 let currentSort = 'reg-desc';
 let searchTimeout;
+let currentPage = 1;
+const RESULTS_PER_PAGE = 100;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -184,11 +187,12 @@ async function performSearch() {
             queryBuilder = queryBuilder.eq('category', currentFilters.category);
         }
         
-        const { data, error } = await queryBuilder.limit(1000);
+        const { data, error } = await queryBuilder.limit(5000);
         
         if (error) throw error;
         
         currentResults = data;
+        currentPage = 1;
         loadingDiv.style.display = 'none';
         resultsPanel.style.display = 'block';
         
@@ -223,14 +227,22 @@ function sortResults() {
             break;
     }
     
+    currentPage = 1;
     displayResults(sorted);
 }
 
-// Display results
-function displayResults(data) {
+// Load more results
+function loadMore() {
+    currentPage++;
+    displayResults(displayedResults, true);
+}
+
+// Display results with pagination
+function displayResults(data, append = false) {
     const resultsDiv = document.getElementById('results');
     const resultsCount = document.getElementById('resultsCount');
     
+    displayedResults = data;
     resultsCount.textContent = data.length.toLocaleString();
     
     if (data.length === 0) {
@@ -238,7 +250,13 @@ function displayResults(data) {
         return;
     }
     
-    const html = `
+    // Calculate pagination
+    const startIndex = append ? (currentPage - 1) * RESULTS_PER_PAGE : 0;
+    const endIndex = currentPage * RESULTS_PER_PAGE;
+    const paginatedData = data.slice(0, endIndex);
+    const hasMore = endIndex < data.length;
+    
+    const tableHtml = `
         <table class="data-table">
             <thead>
                 <tr>
@@ -249,7 +267,7 @@ function displayResults(data) {
                 </tr>
             </thead>
             <tbody>
-                ${data.map(record => `
+                ${paginatedData.map(record => `
                     <tr>
                         <td><span class="reg-number">${record.registration_number}</span></td>
                         <td>${record.name}</td>
@@ -261,7 +279,15 @@ function displayResults(data) {
         </table>
     `;
     
-    resultsDiv.innerHTML = html;
+    const loadMoreHtml = hasMore ? `
+        <div style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid #f4f4f5;">
+            <button class="btn btn-secondary" onclick="loadMore()">
+                Load More (${Math.min(RESULTS_PER_PAGE, data.length - endIndex)} of ${data.length - endIndex} remaining)
+            </button>
+        </div>
+    ` : '';
+    
+    resultsDiv.innerHTML = tableHtml + loadMoreHtml;
 }
 
 // Export results to CSV
