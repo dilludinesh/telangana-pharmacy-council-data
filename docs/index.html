@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TGPC Rx Registry - Professional Search Platform</title>
+    <title>TGPC Rx Registry</title>
     <style>
         * {
             margin: 0;
@@ -12,38 +12,39 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
             background: #fafafa;
-            min-height: 100vh;
-            color: #09090b;
+            color: #18181b;
+            line-height: 1.6;
         }
 
-        .navbar {
+        /* Header */
+        .header {
             background: white;
             border-bottom: 1px solid #e4e4e7;
-            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .navbar-content {
-            max-width: 1600px;
+        .header-content {
+            max-width: 1400px;
             margin: 0 auto;
+            padding: 20px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .logo {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #09090b;
+        .brand {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
 
-        .logo-icon {
-            width: 32px;
-            height: 32px;
+        .brand-icon {
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             border-radius: 8px;
             display: flex;
@@ -51,24 +52,35 @@
             justify-content: center;
             color: white;
             font-weight: 700;
+            font-size: 0.875rem;
         }
 
-        .nav-stats {
-            display: flex;
-            gap: 24px;
-            font-size: 0.875rem;
+        .brand-text h1 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #18181b;
+        }
+
+        .brand-text p {
+            font-size: 0.8125rem;
             color: #71717a;
         }
 
-        .nav-stat {
+        .header-status {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            padding: 6px 12px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 6px;
+            font-size: 0.8125rem;
+            color: #166534;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             background: #10b981;
             border-radius: 50%;
             animation: pulse 2s infinite;
@@ -79,42 +91,44 @@
             50% { opacity: 0.5; }
         }
 
+        /* Main Container */
         .container {
-            max-width: 1600px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 24px;
+            padding: 32px;
         }
 
-        .dashboard {
+        /* Stats Grid */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
         }
 
         .stat-card {
             background: white;
             border: 1px solid #e4e4e7;
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 10px;
+            padding: 24px;
             transition: all 0.2s;
         }
 
         .stat-card:hover {
             border-color: #d4d4d8;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
 
         .stat-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
 
         .stat-icon {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -122,80 +136,51 @@
             font-size: 1.25rem;
         }
 
-        .stat-icon.total { background: #eff6ff; }
-        .stat-icon.bpharm { background: #f0fdf4; }
-        .stat-icon.dpharm { background: #fef3c7; }
-        .stat-icon.mpharm { background: #ede9fe; }
-        .stat-icon.pharmd { background: #fee2e2; }
+        .stat-icon.total { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+        .stat-icon.bpharm { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); }
+        .stat-icon.dpharm { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+        .stat-icon.mpharm { background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); }
+        .stat-icon.pharmd { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); }
 
-        .stat-label {
-            font-size: 0.875rem;
-            color: #71717a;
+        .stat-content h3 {
+            font-size: 0.8125rem;
             font-weight: 500;
-            margin-bottom: 4px;
+            color: #71717a;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
-            color: #09090b;
+            color: #18181b;
             line-height: 1;
         }
 
-        .search-panel {
+        /* Search Section */
+        .search-section {
             background: white;
             border: 1px solid #e4e4e7;
-            border-radius: 12px;
-            padding: 24px;
+            border-radius: 10px;
+            padding: 28px;
             margin-bottom: 24px;
         }
 
-        .search-header {
+        .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
-        .search-title {
-            font-size: 1.125rem;
+        .section-title {
+            font-size: 1rem;
             font-weight: 600;
-            color: #09090b;
+            color: #18181b;
         }
 
-        .btn {
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-primary {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #059669;
-        }
-
-        .btn-secondary {
-            background: white;
-            color: #09090b;
-            border: 1px solid #e4e4e7;
-        }
-
-        .btn-secondary:hover {
-            background: #f4f4f5;
-        }
-
-        .search-input-group {
+        .search-bar {
             display: flex;
             gap: 12px;
             margin-bottom: 20px;
@@ -209,91 +194,108 @@
             border-radius: 8px;
             outline: none;
             transition: all 0.2s;
-            background: white;
+            background: #fafafa;
         }
 
         .search-input:focus {
+            background: white;
             border-color: #10b981;
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
-        .filters-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
+        .btn {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .btn-primary {
+            background: #10b981;
+            color: white;
         }
 
-        .filter-label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #09090b;
+        .btn-primary:hover {
+            background: #059669;
         }
 
-        .filter-buttons {
+        .btn-secondary {
+            background: white;
+            color: #18181b;
+            border: 1px solid #e4e4e7;
+        }
+
+        .btn-secondary:hover {
+            background: #fafafa;
+            border-color: #d4d4d8;
+        }
+
+        .filters {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
         }
 
-        .filter-btn {
-            padding: 8px 14px;
+        .filter-chip {
+            padding: 8px 16px;
             border: 1px solid #e4e4e7;
             background: white;
-            border-radius: 6px;
+            border-radius: 20px;
             cursor: pointer;
             font-size: 0.875rem;
             transition: all 0.2s;
-            color: #09090b;
+            color: #52525b;
             font-weight: 500;
         }
 
-        .filter-btn:hover {
+        .filter-chip:hover {
             border-color: #10b981;
             background: #f0fdf4;
         }
 
-        .filter-btn.active {
+        .filter-chip.active {
             background: #10b981;
             color: white;
             border-color: #10b981;
         }
 
-        .results-panel {
+        /* Results Section */
+        .results-section {
             background: white;
             border: 1px solid #e4e4e7;
-            border-radius: 12px;
-            padding: 24px;
+            border-radius: 10px;
+            padding: 28px;
         }
 
         .results-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #e4e4e7;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f4f4f5;
         }
 
-        .results-count {
+        .results-info {
             font-size: 0.9375rem;
             color: #71717a;
         }
 
-        .results-count strong {
-            color: #09090b;
+        .results-info strong {
+            color: #18181b;
             font-weight: 600;
         }
 
-        .sort-group {
+        .sort-control {
             display: flex;
-            gap: 10px;
             align-items: center;
+            gap: 10px;
         }
 
         .sort-label {
@@ -310,7 +312,7 @@
             outline: none;
             cursor: pointer;
             background: white;
-            color: #09090b;
+            color: #18181b;
         }
 
         .sort-select:focus {
@@ -318,32 +320,43 @@
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
-        .results-table {
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .data-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .results-table thead {
+        .data-table thead {
             background: #fafafa;
         }
 
-        .results-table th {
+        .data-table th {
             padding: 12px 16px;
             text-align: left;
             font-weight: 600;
-            color: #09090b;
-            font-size: 0.875rem;
+            color: #52525b;
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             border-bottom: 1px solid #e4e4e7;
         }
 
-        .results-table td {
-            padding: 14px 16px;
+        .data-table td {
+            padding: 16px;
             border-bottom: 1px solid #f4f4f5;
-            color: #09090b;
+            color: #18181b;
             font-size: 0.9375rem;
         }
 
-        .results-table tbody tr:hover {
+        .data-table tbody tr {
+            transition: background 0.15s;
+        }
+
+        .data-table tbody tr:hover {
             background: #fafafa;
         }
 
@@ -352,7 +365,7 @@
             color: #2563eb;
         }
 
-        .category-badge {
+        .badge {
             display: inline-flex;
             align-items: center;
             padding: 4px 10px;
@@ -361,24 +374,12 @@
             font-weight: 600;
         }
 
-        .category-badge.bpharm { 
-            background: #dcfce7; 
-            color: #166534;
-        }
-        .category-badge.dpharm { 
-            background: #fef3c7; 
-            color: #92400e;
-        }
-        .category-badge.mpharm { 
-            background: #e0e7ff; 
-            color: #3730a3;
-        }
-        .category-badge.pharmd { 
-            background: #fee2e2; 
-            color: #991b1b;
-        }
+        .badge.bpharm { background: #dcfce7; color: #166534; }
+        .badge.dpharm { background: #fef3c7; color: #92400e; }
+        .badge.mpharm { background: #e0e7ff; color: #3730a3; }
+        .badge.pharmd { background: #fee2e2; color: #991b1b; }
 
-        .no-results {
+        .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: #71717a;
@@ -400,12 +401,13 @@
             font-size: 0.875rem;
         }
 
+        /* Responsive */
         @media (max-width: 768px) {
             .container {
-                padding: 16px;
+                padding: 20px;
             }
 
-            .dashboard {
+            .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
 
@@ -413,61 +415,57 @@
                 font-size: 1.5rem;
             }
 
-            .search-input-group {
+            .search-bar {
                 flex-direction: column;
             }
 
-            .filters-section {
-                grid-template-columns: 1fr;
-            }
-
-            .results-table {
-                font-size: 0.875rem;
-            }
-
-            .results-table th,
-            .results-table td {
-                padding: 10px 12px;
-            }
-
-            .nav-stats {
+            .header-status {
                 display: none;
             }
 
             .results-header {
                 flex-direction: column;
-                gap: 12px;
+                gap: 16px;
                 align-items: flex-start;
+            }
+
+            .data-table {
+                font-size: 0.875rem;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 12px;
             }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="navbar-content">
-            <div class="logo">
-                <div class="logo-icon">Rx</div>
-                <span>TGPC Registry</span>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="brand">
+                <div class="brand-icon">Rx</div>
+                <div class="brand-text">
+                    <h1>TGPC Registry</h1>
+                    <p>Telangana Pharmacy Council</p>
+                </div>
             </div>
-            <div class="nav-stats">
-                <div class="nav-stat">
-                    <span class="status-dot"></span>
-                    <span>Live Database</span>
-                </div>
-                <div class="nav-stat">
-                    <span>Updated: <strong id="lastUpdated">Today</strong></span>
-                </div>
+            <div class="header-status">
+                <span class="status-dot"></span>
+                <span>Live Database</span>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <div class="container">
-        <!-- Dashboard Stats -->
-        <div class="dashboard">
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Statistics -->
+        <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-header">
-                    <div>
-                        <div class="stat-label">Total Records</div>
+                    <div class="stat-content">
+                        <h3>Total Records</h3>
                         <div class="stat-value" id="totalRecords">...</div>
                     </div>
                     <div class="stat-icon total">📊</div>
@@ -475,8 +473,8 @@
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div>
-                        <div class="stat-label">BPharm</div>
+                    <div class="stat-content">
+                        <h3>BPharm</h3>
                         <div class="stat-value" id="bpharmCount">...</div>
                     </div>
                     <div class="stat-icon bpharm">🎓</div>
@@ -484,8 +482,8 @@
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div>
-                        <div class="stat-label">DPharm</div>
+                    <div class="stat-content">
+                        <h3>DPharm</h3>
                         <div class="stat-value" id="dpharmCount">...</div>
                     </div>
                     <div class="stat-icon dpharm">📚</div>
@@ -493,8 +491,8 @@
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div>
-                        <div class="stat-label">MPharm</div>
+                    <div class="stat-content">
+                        <h3>MPharm</h3>
                         <div class="stat-value" id="mpharmCount">...</div>
                     </div>
                     <div class="stat-icon mpharm">🔬</div>
@@ -502,8 +500,8 @@
             </div>
             <div class="stat-card">
                 <div class="stat-header">
-                    <div>
-                        <div class="stat-label">PharmD</div>
+                    <div class="stat-content">
+                        <h3>PharmD</h3>
                         <div class="stat-value" id="pharmdCount">...</div>
                     </div>
                     <div class="stat-icon pharmd">⚕️</div>
@@ -511,16 +509,16 @@
             </div>
         </div>
 
-        <!-- Search Panel -->
-        <div class="search-panel">
-            <div class="search-header">
-                <div class="search-title">🔍 Advanced Search</div>
+        <!-- Search -->
+        <section class="search-section">
+            <div class="section-header">
+                <h2 class="section-title">Search Registry</h2>
                 <button class="btn btn-secondary" onclick="exportResults()">
                     📥 Export CSV
                 </button>
             </div>
 
-            <div class="search-input-group">
+            <div class="search-bar">
                 <input 
                     type="text" 
                     class="search-input" 
@@ -531,30 +529,25 @@
                 <button class="btn btn-primary" onclick="performSearch()">Search</button>
             </div>
 
-            <div class="filters-section">
-                <div class="filter-group">
-                    <div class="filter-label">Category Filter</div>
-                    <div class="filter-buttons">
-                        <button class="filter-btn active" data-filter="category" data-value="all">All</button>
-                        <button class="filter-btn" data-filter="category" data-value="BPharm">BPharm</button>
-                        <button class="filter-btn" data-filter="category" data-value="DPharm">DPharm</button>
-                        <button class="filter-btn" data-filter="category" data-value="MPharm">MPharm</button>
-                        <button class="filter-btn" data-filter="category" data-value="PharmD">PharmD</button>
-                    </div>
-                </div>
+            <div class="filters">
+                <button class="filter-chip active" data-filter="category" data-value="all">All Categories</button>
+                <button class="filter-chip" data-filter="category" data-value="BPharm">BPharm</button>
+                <button class="filter-chip" data-filter="category" data-value="DPharm">DPharm</button>
+                <button class="filter-chip" data-filter="category" data-value="MPharm">MPharm</button>
+                <button class="filter-chip" data-filter="category" data-value="PharmD">PharmD</button>
             </div>
-        </div>
+        </section>
 
         <div id="error"></div>
         <div id="loading" class="loading" style="display: none;">Searching database...</div>
 
-        <!-- Results Panel -->
-        <div id="resultsPanel" class="results-panel" style="display: none;">
+        <!-- Results -->
+        <section id="resultsPanel" class="results-section" style="display: none;">
             <div class="results-header">
-                <div class="results-count">
+                <div class="results-info">
                     Showing <strong id="resultsCount">0</strong> results
                 </div>
-                <div class="sort-group">
+                <div class="sort-control">
                     <span class="sort-label">Sort by</span>
                     <select class="sort-select" id="sortSelect" onchange="sortResults()">
                         <option value="reg-desc">Registration (Newest)</option>
@@ -565,9 +558,11 @@
                 </div>
             </div>
 
-            <div id="results"></div>
-        </div>
-    </div>
+            <div class="table-container">
+                <div id="results"></div>
+            </div>
+        </section>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="search.js"></script>

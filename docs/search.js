@@ -36,8 +36,8 @@ function setupEventListeners() {
         }
     });
 
-    // Filter buttons
-    document.querySelectorAll('.filter-btn').forEach(btn => {
+    // Filter chips
+    document.querySelectorAll('.filter-chip').forEach(btn => {
         btn.addEventListener('click', () => {
             const filterType = btn.dataset.filter;
             const filterValue = btn.dataset.value;
@@ -234,12 +234,12 @@ function displayResults(data) {
     resultsCount.textContent = data.length.toLocaleString();
     
     if (data.length === 0) {
-        resultsDiv.innerHTML = '<div class="no-results">No results found. Try different search terms or filters.</div>';
+        resultsDiv.innerHTML = '<div class="empty-state">No results found. Try different search terms or filters.</div>';
         return;
     }
     
     const html = `
-        <table class="results-table">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>Registration Number</th>
@@ -254,7 +254,7 @@ function displayResults(data) {
                         <td><span class="reg-number">${record.registration_number}</span></td>
                         <td>${record.name}</td>
                         <td>${record.father_name || 'N/A'}</td>
-                        <td><span class="category-badge ${record.category.toLowerCase()}">${record.category}</span></td>
+                        <td><span class="badge ${record.category.toLowerCase()}">${record.category}</span></td>
                     </tr>
                 `).join('')}
             </tbody>
