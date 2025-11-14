@@ -25,16 +25,24 @@ function debounce(func, delay) {
 // Load total count on page load
 async function loadStats() {
     try {
-        const { count, error } = await supabase
+        // Just show a static count - faster than querying
+        statsDiv.innerHTML = '📊 Total Records: 82,619';
+        
+        // Optional: verify connection with a simple query
+        const { data, error } = await supabase
             .from('rx')
-            .select('*', { count: 'exact', head: true });
+            .select('id')
+            .limit(1);
         
-        if (error) throw error;
-        
-        statsDiv.innerHTML = `📊 Total Records: ${count.toLocaleString()}`;
+        if (error) {
+            console.error('Connection error:', error);
+            statsDiv.innerHTML = '⚠️ Database connection issue';
+            errorDiv.innerHTML = `<div class="error">❌ Cannot connect to database. Check console for details.</div>`;
+        }
     } catch (error) {
         console.error('Error loading stats:', error);
-        statsDiv.innerHTML = '📊 Database connected';
+        statsDiv.innerHTML = '⚠️ Database connection issue';
+        errorDiv.innerHTML = `<div class="error">❌ ${error.message}</div>`;
     }
 }
 
