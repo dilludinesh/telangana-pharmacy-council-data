@@ -324,37 +324,96 @@ function displayResults(data, append = false) {
     resultsDiv.innerHTML = tableHtml + loadMoreHtml;
 }
 
-// Export results to CSV
+// Reset search
+function resetSearch() {
+    // Clear search input
+    document.getElementById('searchInput').value = '';
+    
+    // Reset filters to "All Categories"
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.value === 'all') {
+            btn.classList.add('active');
+        }
+    });
+    currentFilters.category = 'all';
+    
+    // Reset sort to default
+    document.getElementById('sortSelect').value = 'reg-desc';
+    currentSort = 'reg-desc';
+    
+    // Clear results
+    currentResults = [];
+    displayedResults = [];
+    currentPage = 1;
+    
+    // Hide results panel
+    document.getElementById('resultsPanel').style.display = 'none';
+    document.getElementById('error').innerHTML = '';
+    document.getElementById('loading').style.display = 'none';
+}
+
+// Export results to PDF
 function exportResults() {
     if (currentResults.length === 0) {
         alert('No results to export. Please perform a search first.');
         return;
     }
     
-    // Create CSV content
-    const headers = ['Registration Number', 'Name', 'Father\'s Name', 'Category'];
-    const rows = currentResults.map(record => [
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.setTextColor(0, 204, 102);
+    doc.text('TGPC Rx Registry', 14, 20);
+    
+    // Add subtitle with date
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    const dateStr = new Date().toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+    });
+    doc.text(`Search Results - ${dateStr}`, 14, 27);
+    doc.text(`Total Records: ${currentResults.length}`, 14, 32);
+    
+    // Prepare table data
+    const tableData = currentResults.map(record => [
         record.registration_number,
         record.name,
         record.father_name || 'N/A',
         record.category
     ]);
     
-    let csvContent = headers.join(',') + '\n';
-    rows.forEach(row => {
-        csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+    // Add table
+    doc.autoTable({
+        startY: 38,
+        head: [['Registration Number', 'Name', 'Father\'s Name', 'Category']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: {
+            fillColor: [0, 204, 102],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 10
+        },
+        bodyStyles: {
+            fontSize: 9
+        },
+        alternateRowStyles: {
+            fillColor: [250, 250, 250]
+        },
+        columnStyles: {
+            0: { cellWidth: 40 },
+            1: { cellWidth: 60 },
+            2: { cellWidth: 50 },
+            3: { cellWidth: 30 }
+        },
+        margin: { top: 38, left: 14, right: 14 }
     });
     
-    // Download CSV
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', `tgpc_rx_search_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Save PDF
+    doc.save(`tgpc_rx_search_${new Date().toISOString().split('T')[0]}.pdf`);
 }
