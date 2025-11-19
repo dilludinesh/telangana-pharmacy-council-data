@@ -41,6 +41,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 32px;
+        }
+
+        .header-content .stats-grid {
+            margin-bottom: 0;
+            flex: 0 0 auto;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            gap: 16px;
         }
 
         .brand {
@@ -54,52 +65,38 @@
         .brand-text h1 {
             font-size: 1.5rem;
             font-weight: 700;
-        }
-
-        .brand-tgpc {
-            background: linear-gradient(135deg, #00cc66 0%, #00d9ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
             color: #00cc66;
-        }
-
-        .brand-rx {
-            background: linear-gradient(135deg, #dc2626 0%, #f97316 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: #dc2626;
-        }
-
-        .brand-registry {
-            background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: #1a1a1a;
         }
 
         .brand-text p {
             font-size: 0.8125rem;
+            color: #71717a;
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .brand-text p .updated-text {
             background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            color: #71717a;
         }
 
         .header-status {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 20px;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 10px;
             font-size: 0.8125rem;
             transition: all 0.3s;
             position: relative;
             overflow: hidden;
+            margin-right: 8px;
         }
+
+
 
         .header-status.connected {
             background: #f0fdf4;
@@ -166,6 +163,8 @@
             background: #ef4444;
         }
 
+
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -199,17 +198,23 @@
 
         /* Stats Grid */
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
+            display: flex;
+            gap: 24px;
             margin-bottom: 32px;
         }
 
         .stat-card {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 24px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            border-right: 1px solid #e5e7eb;
+            padding-right: 24px;
+        }
+
+        .stat-card:last-child {
+            border-right: none;
+            padding-right: 0;
         }
 
         .stat-header {
@@ -221,14 +226,12 @@
 
 
         .stat-content h3 {
-            font-size: 0.75rem;
+            font-size: 0.6875rem;
             font-weight: 600;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            padding-bottom: 2px;
-            border-bottom: 2px solid;
-            display: inline-block;
+            letter-spacing: 0.5px;
+            color: #71717a;
         }
 
         .stat-card:nth-child(1) h3 {
@@ -277,11 +280,10 @@
         }
 
         .stat-value {
-            font-size: 2.5rem;
-            font-weight: 800;
+            font-size: 1.25rem;
+            font-weight: 700;
             color: #1a1a1a;
             line-height: 1;
-            letter-spacing: -1px;
         }
 
         /* Search Section */
@@ -674,62 +676,64 @@
             <div class="brand">
                 <div class="brand-text">
                     <h1><span class="brand-tgpc">TGPC</span> <span class="brand-rx">Rx</span> <span class="brand-registry">Registry</span></h1>
-                    <p>Updated: <span id="lastUpdated">Loading...</span></p>
+                    <p>
+                        <span class="header-status" id="connectionStatus">
+                            <span class="status-dot"></span>
+                            <span>Refreshing</span>
+                        </span>
+                        <span class="updated-text"><span id="lastUpdated">Loading...</span></span>
+                    </p>
                 </div>
             </div>
-            <div class="header-status" id="connectionStatus">
-                <span class="status-dot"></span>
-                <span>Connecting...</span>
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-content">
+                            <h3>Total Records</h3>
+                            <div class="stat-value" id="totalRecords">...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-content">
+                            <h3>BPharm</h3>
+                            <div class="stat-value" id="bpharmCount">...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-content">
+                            <h3>DPharm</h3>
+                            <div class="stat-value" id="dpharmCount">...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-content">
+                            <h3>MPharm</h3>
+                            <div class="stat-value" id="mpharmCount">...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-content">
+                            <h3>PharmD</h3>
+                            <div class="stat-value" id="pharmdCount">...</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Additional category cards will be dynamically added here -->
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
     <main class="container">
-        <!-- Statistics -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-content">
-                        <h3>Total Records</h3>
-                        <div class="stat-value" id="totalRecords">...</div>
-                    </div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-content">
-                        <h3>BPharm</h3>
-                        <div class="stat-value" id="bpharmCount">...</div>
-                    </div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-content">
-                        <h3>DPharm</h3>
-                        <div class="stat-value" id="dpharmCount">...</div>
-                    </div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-content">
-                        <h3>MPharm</h3>
-                        <div class="stat-value" id="mpharmCount">...</div>
-                    </div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-content">
-                        <h3>PharmD</h3>
-                        <div class="stat-value" id="pharmdCount">...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Search -->
         <section class="search-section">
             <div class="section-header">
@@ -757,6 +761,7 @@
                 <button class="filter-chip" data-filter="category" data-value="DPharm">DPharm</button>
                 <button class="filter-chip" data-filter="category" data-value="MPharm">MPharm</button>
                 <button class="filter-chip" data-filter="category" data-value="PharmD">PharmD</button>
+                <!-- Additional category filter chips will be dynamically added here -->
             </div>
         </section>
 

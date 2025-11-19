@@ -70,7 +70,7 @@ async function checkConnection() {
     
     try {
         statusEl.className = 'header-status connecting';
-        statusEl.innerHTML = '<span class="status-dot"></span><span>Connecting...</span>';
+        statusEl.innerHTML = '<span class="status-dot"></span><span>Refreshing</span>';
         
         // Try a simple query to check connection
         const { data, error } = await supabase
@@ -82,12 +82,12 @@ async function checkConnection() {
         
         // Connected successfully
         statusEl.className = 'header-status connected';
-        statusEl.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
+        statusEl.innerHTML = '<span class="status-dot"></span><span>Live</span>';
         
     } catch (error) {
         console.error('Connection error:', error);
         statusEl.className = 'header-status error';
-        statusEl.innerHTML = '<span class="status-dot"></span><span>Connection Error</span>';
+        statusEl.innerHTML = '<span class="status-dot"></span><span>Offline</span>';
     }
 }
 
@@ -105,23 +105,26 @@ async function loadAnalytics() {
             const { data, timestamp } = JSON.parse(cached);
             const age = now - timestamp;
             
-            // Display cached data immediately
-            displayAnalytics(data);
-            
-            // If cache is fresh (less than 1 hour old), we're done
-            if (age < CACHE_DURATION) {
-                console.log('✓ Analytics loaded from cache (age: ' + Math.round(age / 60000) + ' min)');
-                return;
+            // Check if cached data has the new format (with categories object)
+            if (data.categories) {
+                // Display cached data immediately
+                displayAnalytics(data);
+                
+                // If cache is fresh (less than 1 hour old), we're done
+                if (age < CACHE_DURATION) {
+                    console.log('✓ Analytics loaded from cache (age: ' + Math.round(age / 60000) + ' min)');
+                    return;
+                }
+                
+                console.log('Cache expired, fetching fresh data...');
+            } else {
+                // Old cache format, clear it and fetch fresh
+                console.log('Old cache format detected, clearing and fetching fresh data...');
+                localStorage.removeItem(CACHE_KEY);
             }
-            
-            console.log('Cache expired, fetching fresh data...');
         } else {
             // No cache, show loading state
             document.getElementById('totalRecords').textContent = '...';
-            document.getElementById('bpharmCount').textContent = '...';
-            document.getElementById('dpharmCount').textContent = '...';
-            document.getElementById('mpharmCount').textContent = '...';
-            document.getElementById('pharmdCount').textContent = '...';
         }
         
         // Fetch fresh data from Supabase
@@ -131,21 +134,51 @@ async function loadAnalytics() {
         
         if (totalError) throw totalError;
         
-        // Get counts by category in parallel
-        const [bpharmRes, dpharmRes, mpharmRes, pharmdRes] = await Promise.all([
-            supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', 'BPharm'),
-            supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', 'DPharm'),
-            supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', 'MPharm'),
-            supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', 'PharmD')
-        ]);
+        // Get all unique categories using a more efficient query
+        // We'll query each known category plus check for others
+        const knownCategories = ['BPharm', 'DPharm', 'MPharm', 'PharmD'];
+        
+        // First, get counts for known categories
+        const knownPromises = knownCategories.map(cat => 
+            supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', cat)
+        );
+        
+        // Also get a sample to check for other categories
+        const { data: sampleData, error: sampleError } = await supabase
+            .from('rx')
+            .select('category')
+            .limit(10000);
+        
+        if (sampleError) throw sampleError;
+        
+        // Get all unique categories from sample
+        const allUniqueCategories = [...new Set(sampleData.map(r => r.category))].filter(c => c).sort();
+        console.log('All unique categories found:', allUniqueCategories);
+        
+        // Find categories not in known list
+        const additionalCategories = allUniqueCategories.filter(cat => !knownCategories.includes(cat));
+        
+        // Get counts for additional categories
+        const additionalPromises = additionalCategories.map(cat => 
+            supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', cat)
+        );
+        
+        const allPromises = [...knownPromises, ...additionalPromises];
+        const allResults = await Promise.all(allPromises);
+        const allCategories = [...knownCategories, ...additionalCategories];
         
         const stats = {
             total: total,
-            bpharm: bpharmRes.count || 0,
-            dpharm: dpharmRes.count || 0,
-            mpharm: mpharmRes.count || 0,
-            pharmd: pharmdRes.count || 0
+            categories: {}
         };
+        
+        allCategories.forEach((cat, index) => {
+            const count = allResults[index]?.count || 0;
+            stats.categories[cat] = count;
+            console.log(`Category ${cat}: ${count}`);
+        });
+        
+        console.log('✓ Analytics loaded from Supabase:', stats);
         
         // Save to cache
         localStorage.setItem(CACHE_KEY, JSON.stringify({
@@ -156,28 +189,94 @@ async function loadAnalytics() {
         // Display fresh data
         displayAnalytics(stats);
         
-        console.log('✓ Analytics loaded from Supabase and cached:', stats);
-        
     } catch (error) {
         console.error('Error loading analytics:', error);
         // Fallback to approximate values if query fails
         displayAnalytics({
             total: 82621,
-            bpharm: 57543,
-            dpharm: 16112,
-            mpharm: 2354,
-            pharmd: 6352
+            categories: {
+                'BPharm': 57543,
+                'DPharm': 16112,
+                'MPharm': 2354,
+                'PharmD': 6352
+            }
         });
     }
 }
 
 // Display analytics on the page
 function displayAnalytics(stats) {
+    console.log('displayAnalytics called with:', stats);
+    
     document.getElementById('totalRecords').textContent = stats.total.toLocaleString();
-    document.getElementById('bpharmCount').textContent = stats.bpharm.toLocaleString();
-    document.getElementById('dpharmCount').textContent = stats.dpharm.toLocaleString();
-    document.getElementById('mpharmCount').textContent = stats.mpharm.toLocaleString();
-    document.getElementById('pharmdCount').textContent = stats.pharmd.toLocaleString();
+    
+    if (stats.categories) {
+        console.log('All categories found:', Object.keys(stats.categories));
+        
+        // Update all categories
+        Object.keys(stats.categories).forEach(cat => {
+            const elementId = cat.toLowerCase() + 'Count';
+            const element = document.getElementById(elementId);
+            console.log(`Looking for element: ${elementId}, found:`, element);
+            if (element) {
+                element.textContent = stats.categories[cat].toLocaleString();
+                console.log(`Set ${cat} to ${stats.categories[cat]}`);
+            } else {
+                console.warn(`Element not found for category: ${cat}`);
+            }
+        });
+        
+        // Get the stats grid and filters container
+        const statsGrid = document.querySelector('.stats-grid');
+        const filtersContainer = document.querySelector('.filters');
+        
+        // Remove any previously added dynamic elements
+        statsGrid.querySelectorAll('.stat-card.dynamic').forEach(card => card.remove());
+        filtersContainer.querySelectorAll('.filter-chip.dynamic').forEach(chip => chip.remove());
+        
+        // Get all categories sorted
+        const allCategories = Object.keys(stats.categories).sort();
+        const knownCategories = ['BPharm', 'DPharm', 'MPharm', 'PharmD'];
+        const additionalCategories = allCategories.filter(cat => !knownCategories.includes(cat));
+        
+        // Add stat cards and filter chips for additional categories
+        additionalCategories.forEach(cat => {
+            // Add stat card
+            const card = document.createElement('div');
+            card.className = 'stat-card dynamic';
+            card.innerHTML = `
+                <div class="stat-header">
+                    <div class="stat-content">
+                        <h3>${cat}</h3>
+                        <div class="stat-value">${stats.categories[cat].toLocaleString()}</div>
+                    </div>
+                </div>
+            `;
+            statsGrid.appendChild(card);
+            
+            // Add filter chip
+            const chip = document.createElement('button');
+            chip.className = 'filter-chip dynamic';
+            chip.setAttribute('data-filter', 'category');
+            chip.setAttribute('data-value', cat);
+            chip.textContent = cat;
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentFilters.category = cat;
+                const query = document.getElementById('searchInput').value.trim();
+                if (query.length >= 2) {
+                    performSearch();
+                }
+            });
+            filtersContainer.appendChild(chip);
+        });
+        
+        console.log('Displayed categories:', allCategories);
+        if (additionalCategories.length > 0) {
+            console.log('Additional categories added:', additionalCategories);
+        }
+    }
     
     // Set last updated date with time
     const now = new Date();
