@@ -7,7 +7,8 @@ This script is run by GitHub Actions after updating rx.json.
 import json
 import os
 import sys
-from supabase import create_client, Client
+
+from supabase import Client, create_client
 
 
 def load_records(file_path: str) -> list:
@@ -29,14 +30,14 @@ def init_supabase() -> Client:
     """Initialize Supabase client with credentials from environment variables."""
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_SERVICE_KEY")
-    
+
     if not url or not key:
         print("✗ Error: Missing Supabase credentials")
         print("  Required environment variables:")
         print("  - SUPABASE_URL")
         print("  - SUPABASE_SERVICE_KEY")
         sys.exit(1)
-    
+
     try:
         supabase = create_client(url, key)
         print("✓ Connected to Supabase")
@@ -57,30 +58,30 @@ def sync_records(supabase: Client, records: list) -> dict:
         "errors": 0,
         "error_details": []
     }
-    
+
     print(f"\nSyncing {stats['total']} records to Supabase...")
-    
+
     # Batch upsert for better performance
     batch_size = 1000
     for i in range(0, len(records), batch_size):
         batch = records[i:i + batch_size]
-        
+
         try:
             # Upsert batch (insert new or update existing based on registration_number)
-            response = supabase.table('rx').upsert(
+            supabase.table('rx').upsert(
                 batch,
                 on_conflict='registration_number'
             ).execute()
-            
+
             stats['synced'] += len(batch)
             print(f"  ✓ Synced batch {i//batch_size + 1}: {len(batch)} records")
-            
+
         except Exception as e:
             stats['errors'] += len(batch)
             error_msg = f"Batch {i//batch_size + 1} failed: {str(e)}"
             stats['error_details'].append(error_msg)
             print(f"  ✗ {error_msg}")
-    
+
     return stats
 
 
@@ -89,16 +90,16 @@ def main():
     print("=" * 60)
     print("TGPC Pharmacist Data Sync to Supabase")
     print("=" * 60)
-    
+
     # Load records from rx.json
     records = load_records('data/rx.json')
-    
+
     # Initialize Supabase client
     supabase = init_supabase()
-    
+
     # Sync records
     stats = sync_records(supabase, records)
-    
+
     # Print summary
     print("\n" + "=" * 60)
     print("Sync Summary")
@@ -106,12 +107,12 @@ def main():
     print(f"Total records:   {stats['total']}")
     print(f"Synced:          {stats['synced']}")
     print(f"Errors:          {stats['errors']}")
-    
+
     if stats['error_details']:
         print("\nError Details:")
         for error in stats['error_details']:
             print(f"  - {error}")
-    
+
     # Exit with error code if there were errors
     if stats['errors'] > 0:
         print("\n✗ Sync completed with errors")

@@ -2,114 +2,112 @@
 Minimal core engine for TGPC data extraction system.
 """
 
-import logging
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 from tgpc.config.settings import Config
 from tgpc.extractors.pharmacist_extractor import PharmacistExtractor
+from tgpc.models.pharmacist import PharmacistRecord
 from tgpc.storage.file_manager import FileManager
 from tgpc.utils.logger import get_logger
-from tgpc.models.pharmacist import PharmacistRecord
-from tgpc.core.exceptions import TGPCException
 
 
 class TGPCEngine:
     """Minimal engine for TGPC data extraction operations."""
-    
+
     def __init__(self, config: Optional[Config] = None):
         """Initialize the TGPC engine."""
         self.config = config or Config.load()
         self.logger = get_logger(__name__)
-        
+
         # Initialize components
         self._extractor: Optional[PharmacistExtractor] = None
         self._file_manager: Optional[FileManager] = None
-        
+
         self.logger.info("TGPC Engine initialized")
-    
+
     @property
     def extractor(self) -> PharmacistExtractor:
         """Get or create the pharmacist extractor."""
         if self._extractor is None:
             self._extractor = PharmacistExtractor(self.config)
         return self._extractor
-    
+
     @property
     def file_manager(self) -> FileManager:
         """Get or create the file manager."""
         if self._file_manager is None:
             self._file_manager = FileManager(self.config)
         return self._file_manager
-    
+
     def get_total_count(self) -> int:
         """Get the total count of pharmacists from the TGPC website."""
         self.logger.info("Fetching total pharmacist count")
         return self.extractor.extract_total_count()
-    
+
     def extract_basic_records(self) -> List[PharmacistRecord]:
         """Extract basic pharmacist records from the TGPC website."""
         self.logger.info("Starting basic records extraction")
         records = self.extractor.extract_basic_records()
-        
+
         self.logger.info(f"Basic records extraction completed: {len(records)} records")
         return records
-    
+
     def extract_detailed_records(
-        self, 
+        self,
         registration_numbers: List[str],
         start_index: int = 0,
         batch_size: int = 100
     ) -> List[PharmacistRecord]:
         """Extract detailed pharmacist records for given registration numbers."""
         self.logger.info(f"Starting detailed records extraction: {len(registration_numbers)} numbers")
-        
+
         detailed_records = self.extractor.batch_extract(
             registration_numbers[start_index:],
             batch_size=batch_size
         )
-        
+
         self.logger.info(f"Detailed records extraction completed: {len(detailed_records)} records")
         return detailed_records
-    
+
     def save_records(self, records: List[PharmacistRecord], filename: str, basic_only: bool = False) -> Path:
         """Save pharmacist records to file."""
         self.logger.info(f"Saving {len(records)} records to {filename}")
         return self.file_manager.save_records(records, filename, basic_only=basic_only)
-    
+
     def load_records(self, filename: str) -> List[PharmacistRecord]:
         """Load pharmacist records from file."""
         self.logger.info(f"Loading records from {filename}")
         return self.file_manager.load_records(filename)
-    
+
     def sync_with_website(self, existing_file: str = "pharmacists.json") -> Dict[str, Any]:
         """Synchronize local data with the TGPC website."""
         self.logger.info("Starting sync with TGPC website")
-        
+
         # Extract just the filename if a path is provided
         filename = Path(existing_file).name
-        
+
         # Load existing records
         existing_records = []
         existing_file_path = Path(self.config.data_directory) / filename
-        
+
         if existing_file_path.exists():
             existing_records = self.load_records(filename)
-        
+
         # Extract current records from website
         current_records = self.extract_basic_records()
-        
+
         # Find new and updated records
         existing_reg_numbers = {r.registration_number for r in existing_records}
         current_reg_numbers = {r.registration_number for r in current_records}
-        
+
         new_reg_numbers = current_reg_numbers - existing_reg_numbers
         removed_reg_numbers = existing_reg_numbers - current_reg_numbers
-        
+
         # Save updated dataset
         if new_reg_numbers or removed_reg_numbers:
             self.save_records(current_records, filename, basic_only=True)
-            
+
             sync_result = {
                 "status": "updated",
                 "total_records": len(current_records),
@@ -123,6 +121,6 @@ class TGPCEngine:
                 "new_records": 0,
                 "removed_records": 0
             }
-        
+
         self.logger.info("Sync completed")
         return sync_result

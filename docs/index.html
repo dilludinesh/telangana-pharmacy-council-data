@@ -57,7 +57,25 @@
         .brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: white;
+            color: #1a1a1a;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #f9fafb;
+            border-color: #dc2626;
+            color: #dc2626;
         }
 
 
@@ -684,6 +702,7 @@
                         <span class="updated-text"><span id="lastUpdated">Loading...</span></span>
                     </p>
                 </div>
+                <button class="btn-logout" onclick="logout()">Logout</button>
             </div>
             <!-- Statistics -->
             <div class="stats-grid">
@@ -794,6 +813,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        // Check authentication
+        const authenticated = sessionStorage.getItem('authenticated');
+        const loginTime = sessionStorage.getItem('loginTime');
+        const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours
+        
+        if (!authenticated || !loginTime || (Date.now() - parseInt(loginTime)) > SESSION_DURATION) {
+            // Not authenticated or session expired
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+    </script>
     <script src="search.js"></script>
 </body>
 </html>

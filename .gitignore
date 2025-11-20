@@ -47,3 +47,10 @@ data/metadata/
 .DS_Store
 Thumbs.db
 *.DS_Store
+
+# Testing and linting cache
+.pytest_cache/
+.ruff_cache/
+.coverage
+.mypy_cache/
+

@@ -15,6 +15,12 @@ let searchTimeout;
 let currentPage = 1;
 const RESULTS_PER_PAGE = 100;
 
+// Logout function
+function logout() {
+    sessionStorage.clear();
+    window.location.href = 'login.html';
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
