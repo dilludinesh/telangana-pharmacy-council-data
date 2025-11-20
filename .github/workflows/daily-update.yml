@@ -163,14 +163,9 @@ jobs:
         git add data/rx.json
         
         # Create commit message with update details
-        git commit -m "🤖 Daily data update - $(date '+%Y-%m-%d')
-
-        📊 Update Summary:
-        • Total records: ${{ steps.update.outputs.total_records }}
-        • New records: ${{ steps.update.outputs.new_records }}
-        • Removed records: ${{ steps.update.outputs.removed_records }}
-        • Duplicates removed: ${{ steps.update.outputs.duplicates_removed }}
-        • Data integrity: ${{ steps.update.outputs.integrity_score }}
+        git commit -m "Rx Auto Update - $(date '+%Y-%m-%d')
+        
+        Total: ${{ steps.update.outputs.total_records }} | New: ${{ steps.update.outputs.new_records }} | Removed: ${{ steps.update.outputs.removed_records }} | Duplicates: ${{ steps.update.outputs.duplicates_removed }} | Integrity: ${{ steps.update.outputs.integrity_score }}
         
         🔄 Automated update using Total Records URL only
         🛡️ Data validated and duplicates removed
