@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -184,8 +185,15 @@
 
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
         }
 
         @keyframes dotWave {
@@ -194,6 +202,7 @@
                 height: 6px;
                 opacity: 0.6;
             }
+
             100% {
                 width: 24px;
                 height: 24px;
@@ -514,10 +523,25 @@
             font-weight: 600;
         }
 
-        .badge.bpharm { background: #dcfce7; color: #166534; }
-        .badge.dpharm { background: #fef3c7; color: #92400e; }
-        .badge.mpharm { background: #e0e7ff; color: #3730a3; }
-        .badge.pharmd { background: #fee2e2; color: #991b1b; }
+        .badge.bpharm {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.dpharm {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge.mpharm {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .badge.pharmd {
+            background: #fee2e2;
+            color: #991b1b;
+        }
 
         .empty-state {
             text-align: center;
@@ -605,7 +629,8 @@
             }
 
             .search-input {
-                font-size: 16px; /* Prevents zoom on iOS */
+                font-size: 16px;
+                /* Prevents zoom on iOS */
             }
 
             .btn {
@@ -644,7 +669,8 @@
 
             .data-table {
                 font-size: 0.8125rem;
-                min-width: 600px; /* Allows horizontal scroll */
+                min-width: 600px;
+                /* Allows horizontal scroll */
             }
 
             .data-table th,
@@ -687,13 +713,15 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
         <div class="header-content">
             <div class="brand">
                 <div class="brand-text">
-                    <h1><span class="brand-tgpc">TGPC</span> <span class="brand-rx">Rx</span> <span class="brand-registry">Registry</span></h1>
+                    <h1><span class="brand-tgpc">TGPC</span> <span class="brand-rx">Rx</span> <span
+                            class="brand-registry">Registry</span></h1>
                     <p>
                         <span class="header-status" id="connectionStatus">
                             <span class="status-dot"></span>
@@ -702,7 +730,6 @@
                         <span class="updated-text"><span id="lastUpdated">Loading...</span></span>
                     </p>
                 </div>
-                <button class="btn-logout" onclick="logout()">Logout</button>
             </div>
             <!-- Statistics -->
             <div class="stats-grid">
@@ -763,13 +790,8 @@
             </div>
 
             <div class="search-bar">
-                <input 
-                    type="text" 
-                    class="search-input" 
-                    id="searchInput" 
-                    placeholder="Search by registration number, name, or father's name..."
-                    autocomplete="off"
-                >
+                <input type="text" class="search-input" id="searchInput"
+                    placeholder="Search by registration number, name, or father's name..." autocomplete="off">
                 <button class="btn btn-primary" onclick="performSearch()">Search</button>
                 <button class="btn btn-secondary" onclick="resetSearch()">Reset</button>
             </div>
@@ -813,18 +835,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-    <script>
-        // Check authentication
-        const authenticated = sessionStorage.getItem('authenticated');
-        const loginTime = sessionStorage.getItem('loginTime');
-        const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours
-        
-        if (!authenticated || !loginTime || (Date.now() - parseInt(loginTime)) > SESSION_DURATION) {
-            // Not authenticated or session expired
-            sessionStorage.clear();
-            window.location.href = 'login.html';
-        }
-    </script>
     <script src="search.js"></script>
 </body>
+
 </html>

@@ -15,11 +15,6 @@ let searchTimeout;
 let currentPage = 1;
 const RESULTS_PER_PAGE = 100;
 
-// Logout function
-function logout() {
-    sessionStorage.clear();
-    window.location.href = 'login.html';
-}
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -51,16 +46,16 @@ function setupEventListeners() {
         btn.addEventListener('click', () => {
             const filterType = btn.dataset.filter;
             const filterValue = btn.dataset.value;
-            
+
             // Update active state
             document.querySelectorAll(`[data-filter="${filterType}"]`).forEach(b => {
                 b.classList.remove('active');
             });
             btn.classList.add('active');
-            
+
             // Update filter
             currentFilters[filterType] = filterValue;
-            
+
             // Re-search if there's a query
             const query = document.getElementById('searchInput').value.trim();
             if (query.length >= 2) {
@@ -73,23 +68,23 @@ function setupEventListeners() {
 // Check database connection status
 async function checkConnection() {
     const statusEl = document.getElementById('connectionStatus');
-    
+
     try {
         statusEl.className = 'header-status connecting';
         statusEl.innerHTML = '<span class="status-dot"></span><span>Refreshing</span>';
-        
+
         // Try a simple query to check connection
         const { data, error } = await supabase
             .from('rx')
             .select('id')
             .limit(1);
-        
+
         if (error) throw error;
-        
+
         // Connected successfully
         statusEl.className = 'header-status connected';
         statusEl.innerHTML = '<span class="status-dot"></span><span>Live</span>';
-        
+
     } catch (error) {
         console.error('Connection error:', error);
         statusEl.className = 'header-status error';
@@ -101,27 +96,27 @@ async function checkConnection() {
 async function loadAnalytics() {
     const CACHE_KEY = 'tgpc_analytics';
     const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
-    
+
     try {
         // Try to load from cache first
         const cached = localStorage.getItem(CACHE_KEY);
         const now = Date.now();
-        
+
         if (cached) {
             const { data, timestamp } = JSON.parse(cached);
             const age = now - timestamp;
-            
+
             // Check if cached data has the new format (with categories object)
             if (data.categories) {
                 // Display cached data immediately
                 displayAnalytics(data);
-                
+
                 // If cache is fresh (less than 1 hour old), we're done
                 if (age < CACHE_DURATION) {
                     console.log('✓ Analytics loaded from cache (age: ' + Math.round(age / 60000) + ' min)');
                     return;
                 }
-                
+
                 console.log('Cache expired, fetching fresh data...');
             } else {
                 // Old cache format, clear it and fetch fresh
@@ -132,69 +127,69 @@ async function loadAnalytics() {
             // No cache, show loading state
             document.getElementById('totalRecords').textContent = '...';
         }
-        
+
         // Fetch fresh data from Supabase
         const { count: total, error: totalError } = await supabase
             .from('rx')
             .select('*', { count: 'exact', head: true });
-        
+
         if (totalError) throw totalError;
-        
+
         // Get all unique categories using a more efficient query
         // We'll query each known category plus check for others
         const knownCategories = ['BPharm', 'DPharm', 'MPharm', 'PharmD'];
-        
+
         // First, get counts for known categories
-        const knownPromises = knownCategories.map(cat => 
+        const knownPromises = knownCategories.map(cat =>
             supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', cat)
         );
-        
+
         // Also get a sample to check for other categories
         const { data: sampleData, error: sampleError } = await supabase
             .from('rx')
             .select('category')
             .limit(10000);
-        
+
         if (sampleError) throw sampleError;
-        
+
         // Get all unique categories from sample
         const allUniqueCategories = [...new Set(sampleData.map(r => r.category))].filter(c => c).sort();
         console.log('All unique categories found:', allUniqueCategories);
-        
+
         // Find categories not in known list
         const additionalCategories = allUniqueCategories.filter(cat => !knownCategories.includes(cat));
-        
+
         // Get counts for additional categories
-        const additionalPromises = additionalCategories.map(cat => 
+        const additionalPromises = additionalCategories.map(cat =>
             supabase.from('rx').select('*', { count: 'exact', head: true }).eq('category', cat)
         );
-        
+
         const allPromises = [...knownPromises, ...additionalPromises];
         const allResults = await Promise.all(allPromises);
         const allCategories = [...knownCategories, ...additionalCategories];
-        
+
         const stats = {
             total: total,
             categories: {}
         };
-        
+
         allCategories.forEach((cat, index) => {
             const count = allResults[index]?.count || 0;
             stats.categories[cat] = count;
             console.log(`Category ${cat}: ${count}`);
         });
-        
+
         console.log('✓ Analytics loaded from Supabase:', stats);
-        
+
         // Save to cache
         localStorage.setItem(CACHE_KEY, JSON.stringify({
             data: stats,
             timestamp: now
         }));
-        
+
         // Display fresh data
         displayAnalytics(stats);
-        
+
     } catch (error) {
         console.error('Error loading analytics:', error);
         // Fallback to approximate values if query fails
@@ -213,12 +208,12 @@ async function loadAnalytics() {
 // Display analytics on the page
 function displayAnalytics(stats) {
     console.log('displayAnalytics called with:', stats);
-    
+
     document.getElementById('totalRecords').textContent = stats.total.toLocaleString();
-    
+
     if (stats.categories) {
         console.log('All categories found:', Object.keys(stats.categories));
-        
+
         // Update all categories
         Object.keys(stats.categories).forEach(cat => {
             const elementId = cat.toLowerCase() + 'Count';
@@ -231,20 +226,20 @@ function displayAnalytics(stats) {
                 console.warn(`Element not found for category: ${cat}`);
             }
         });
-        
+
         // Get the stats grid and filters container
         const statsGrid = document.querySelector('.stats-grid');
         const filtersContainer = document.querySelector('.filters');
-        
+
         // Remove any previously added dynamic elements
         statsGrid.querySelectorAll('.stat-card.dynamic').forEach(card => card.remove());
         filtersContainer.querySelectorAll('.filter-chip.dynamic').forEach(chip => chip.remove());
-        
+
         // Get all categories sorted
         const allCategories = Object.keys(stats.categories).sort();
         const knownCategories = ['BPharm', 'DPharm', 'MPharm', 'PharmD'];
         const additionalCategories = allCategories.filter(cat => !knownCategories.includes(cat));
-        
+
         // Add stat cards and filter chips for additional categories
         additionalCategories.forEach(cat => {
             // Add stat card
@@ -259,14 +254,14 @@ function displayAnalytics(stats) {
                 </div>
             `;
             statsGrid.appendChild(card);
-            
+
             // Add filter chip
             const chip = document.createElement('button');
             chip.className = 'filter-chip dynamic';
             chip.setAttribute('data-filter', 'category');
             chip.setAttribute('data-value', cat);
             chip.textContent = cat;
-            chip.addEventListener('click', function() {
+            chip.addEventListener('click', function () {
                 document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentFilters.category = cat;
@@ -277,22 +272,22 @@ function displayAnalytics(stats) {
             });
             filtersContainer.appendChild(chip);
         });
-        
+
         console.log('Displayed categories:', allCategories);
         if (additionalCategories.length > 0) {
             console.log('Additional categories added:', additionalCategories);
         }
     }
-    
+
     // Set last updated date with time
     const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
+    const dateStr = now.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
     });
-    const timeStr = now.toLocaleTimeString('en-GB', { 
-        hour: '2-digit', 
+    const timeStr = now.toLocaleTimeString('en-GB', {
+        hour: '2-digit',
         minute: '2-digit',
         hour12: false
     });
@@ -305,38 +300,38 @@ async function performSearch() {
     const loadingDiv = document.getElementById('loading');
     const errorDiv = document.getElementById('error');
     const resultsPanel = document.getElementById('resultsPanel');
-    
+
     if (query.length < 2) {
         resultsPanel.style.display = 'none';
         return;
     }
-    
+
     loadingDiv.style.display = 'block';
     resultsPanel.style.display = 'none';
     errorDiv.innerHTML = '';
-    
+
     try {
         let queryBuilder = supabase
             .from('rx')
             .select('registration_number,name,father_name,category')
             .or(`registration_number.ilike.%${query}%,name.ilike.%${query}%,father_name.ilike.%${query}%`);
-        
+
         // Apply category filter
         if (currentFilters.category !== 'all') {
             queryBuilder = queryBuilder.eq('category', currentFilters.category);
         }
-        
+
         const { data, error } = await queryBuilder.limit(5000);
-        
+
         if (error) throw error;
-        
+
         currentResults = data;
         currentPage = 1;
         loadingDiv.style.display = 'none';
         resultsPanel.style.display = 'block';
-        
+
         sortResults();
-        
+
     } catch (error) {
         console.error('Search error:', error);
         loadingDiv.style.display = 'none';
@@ -348,10 +343,10 @@ async function performSearch() {
 function sortResults() {
     const sortValue = document.getElementById('sortSelect').value;
     currentSort = sortValue;
-    
+
     let sorted = [...currentResults];
-    
-    switch(sortValue) {
+
+    switch (sortValue) {
         case 'reg-desc':
             sorted.sort((a, b) => b.registration_number.localeCompare(a.registration_number));
             break;
@@ -365,7 +360,7 @@ function sortResults() {
             sorted.sort((a, b) => b.name.localeCompare(a.name));
             break;
     }
-    
+
     currentPage = 1;
     displayResults(sorted);
 }
@@ -380,21 +375,21 @@ function loadMore() {
 function displayResults(data, append = false) {
     const resultsDiv = document.getElementById('results');
     const resultsCount = document.getElementById('resultsCount');
-    
+
     displayedResults = data;
     resultsCount.textContent = data.length.toLocaleString();
-    
+
     if (data.length === 0) {
         resultsDiv.innerHTML = '<div class="empty-state">No results found. Try different search terms or filters.</div>';
         return;
     }
-    
+
     // Calculate pagination
     const startIndex = append ? (currentPage - 1) * RESULTS_PER_PAGE : 0;
     const endIndex = currentPage * RESULTS_PER_PAGE;
     const paginatedData = data.slice(0, endIndex);
     const hasMore = endIndex < data.length;
-    
+
     const tableHtml = `
         <table class="data-table">
             <thead>
@@ -417,7 +412,7 @@ function displayResults(data, append = false) {
             </tbody>
         </table>
     `;
-    
+
     const loadMoreHtml = hasMore ? `
         <div style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid #f4f4f5;">
             <button class="btn btn-secondary" onclick="loadMore()">
@@ -425,7 +420,7 @@ function displayResults(data, append = false) {
             </button>
         </div>
     ` : '';
-    
+
     resultsDiv.innerHTML = tableHtml + loadMoreHtml;
 }
 
@@ -433,7 +428,7 @@ function displayResults(data, append = false) {
 function resetSearch() {
     // Clear search input
     document.getElementById('searchInput').value = '';
-    
+
     // Reset filters to "All Categories"
     document.querySelectorAll('.filter-chip').forEach(btn => {
         btn.classList.remove('active');
@@ -442,16 +437,16 @@ function resetSearch() {
         }
     });
     currentFilters.category = 'all';
-    
+
     // Reset sort to default
     document.getElementById('sortSelect').value = 'reg-desc';
     currentSort = 'reg-desc';
-    
+
     // Clear results
     currentResults = [];
     displayedResults = [];
     currentPage = 1;
-    
+
     // Hide results panel
     document.getElementById('resultsPanel').style.display = 'none';
     document.getElementById('error').innerHTML = '';
@@ -464,26 +459,26 @@ function exportResults() {
         alert('No results to export. Please perform a search first.');
         return;
     }
-    
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    
+
     // Add title
     doc.setFontSize(18);
     doc.setTextColor(0, 204, 102);
     doc.text('TGPC Rx Registry', 14, 20);
-    
+
     // Add subtitle with date
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
-    const dateStr = new Date().toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
+    const dateStr = new Date().toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
     });
     doc.text(`Search Results - ${dateStr}`, 14, 27);
     doc.text(`Total Records: ${currentResults.length}`, 14, 32);
-    
+
     // Prepare table data
     const tableData = currentResults.map(record => [
         record.registration_number,
@@ -491,7 +486,7 @@ function exportResults() {
         record.father_name || 'N/A',
         record.category
     ]);
-    
+
     // Add table
     doc.autoTable({
         startY: 38,
@@ -518,7 +513,7 @@ function exportResults() {
         },
         margin: { top: 38, left: 14, right: 14 }
     });
-    
+
     // Save PDF
     doc.save(`tgpc_rx_search_${new Date().toISOString().split('T')[0]}.pdf`);
 }
