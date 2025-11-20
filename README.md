@@ -1,6 +1,7 @@
 # TGPC Rx Registry
 
-**Automated daily extraction of Rx registry data from Telangana Government Pharmacy Council (TGPC)**
+**Automated daily extraction of Rx registry data from TGPC**
+
 
 ## 🤖 Automatic Daily Updates
 
