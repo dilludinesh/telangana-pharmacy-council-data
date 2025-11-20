@@ -165,11 +165,8 @@ jobs:
         # Create commit message with update details
         git commit -m "Rx Auto Update - $(date '+%Y-%m-%d')
         
-        Total: ${{ steps.update.outputs.total_records }} | New: ${{ steps.update.outputs.new_records }} | Removed: ${{ steps.update.outputs.removed_records }} | Duplicates: ${{ steps.update.outputs.duplicates_removed }} | Integrity: ${{ steps.update.outputs.integrity_score }}
-        
-        🔄 Automated update using Total Records URL only
-        🛡️ Data validated and duplicates removed
-        ⏰ Updated at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        Total: ${{ steps.update.outputs.total_records }} | New: ${{ steps.update.outputs.new_records }} | Removed: ${{ steps.update.outputs.removed_records }} | Duplicates: ${{ steps.update.outputs.duplicates_removed }} | Integrity: ${{ steps.update.outputs.integrity_score }}"
+
         
         git push
     
