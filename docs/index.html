@@ -90,9 +90,7 @@
         .brand-text p {
             font-size: 0.8125rem;
             color: #71717a;
-            display: flex;
-            align-items: center;
-            gap: 0;
+            margin-top: 4px;
         }
 
         .brand-text p .updated-text {
@@ -106,13 +104,25 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            padding: 2px 8px;
+            padding: 4px 12px;
             border-radius: 10px;
-            font-size: 0.8125rem;
+            font-size: 0.75rem;
             transition: all 0.3s;
             position: relative;
-            overflow: hidden;
-            margin-right: 8px;
+            margin: 0;
+            font-weight: normal;
+            white-space: nowrap;
+        }
+
+        .status-separator {
+            margin: 0 8px;
+            opacity: 0.4;
+            font-weight: 300;
+        }
+
+        .status-date {
+            opacity: 0.9;
+            font-weight: 500;
         }
 
 
@@ -725,9 +735,10 @@
                     <p>
                         <span class="header-status" id="connectionStatus">
                             <span class="status-dot"></span>
-                            <span>Refreshing</span>
+                            <span>Live</span>
+                            <span class="status-separator">|</span>
+                            <span class="status-date" id="lastUpdated">Loading...</span>
                         </span>
-                        <span class="updated-text"><span id="lastUpdated">Loading...</span></span>
                     </p>
                 </div>
             </div>
@@ -835,7 +846,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-    <script src="search.js"></script>
+    <script src="search.js?v=20251202b"></script>
 </body>
 
 </html>

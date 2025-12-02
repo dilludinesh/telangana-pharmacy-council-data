@@ -70,8 +70,12 @@ async function checkConnection() {
     const statusEl = document.getElementById('connectionStatus');
 
     try {
+        // Get current date text if it exists
+        const dateEl = document.getElementById('lastUpdated');
+        const dateText = dateEl ? dateEl.textContent : 'Loading...';
+
         statusEl.className = 'header-status connecting';
-        statusEl.innerHTML = '<span class="status-dot"></span><span>Refreshing</span>';
+        statusEl.innerHTML = `<span class="status-dot"></span><span>Refreshing</span><span class="status-separator">|</span><span class="status-date" id="lastUpdated">${dateText}</span>`;
 
         // Try a simple query to check connection
         const { data, error } = await supabase
@@ -82,13 +86,22 @@ async function checkConnection() {
         if (error) throw error;
 
         // Connected successfully
+        // Get date text again in case it changed while we were waiting
+        const currentDateEl = document.getElementById('lastUpdated');
+        const currentDateText = currentDateEl ? currentDateEl.textContent : dateText;
+
         statusEl.className = 'header-status connected';
-        statusEl.innerHTML = '<span class="status-dot"></span><span>Live</span>';
+        statusEl.innerHTML = `<span class="status-dot"></span><span>Live</span><span class="status-separator">|</span><span class="status-date" id="lastUpdated">${currentDateText}</span>`;
 
     } catch (error) {
         console.error('Connection error:', error);
+
+        // Get date text again
+        const dateEl = document.getElementById('lastUpdated');
+        const dateText = dateEl ? dateEl.textContent : 'Loading...';
+
         statusEl.className = 'header-status error';
-        statusEl.innerHTML = '<span class="status-dot"></span><span>Offline</span>';
+        statusEl.innerHTML = `<span class="status-dot"></span><span>Offline</span><span style="margin-left: 8px; color: inherit; font-weight: 500;" id="lastUpdated">${dateText}</span>`;
     }
 }
 
@@ -280,18 +293,32 @@ function displayAnalytics(stats) {
     }
 
     // Set last updated date with time
+    // Custom format: TUE 02DEC2025 AT 00:00
     const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-    });
-    const timeStr = now.toLocaleTimeString('en-GB', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-    });
-    document.getElementById('lastUpdated').textContent = `${dateStr} at ${timeStr}`;
+
+    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+    const dayName = days[now.getDay()];
+    const dayNum = String(now.getDate()).padStart(2, '0');
+    const monthName = months[now.getMonth()];
+    const year = now.getFullYear();
+
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+
+    const dateStr = `${dayName} ${dayNum}${monthName}${year}`;
+    const timeStr = `${hours}:${minutes}`;
+
+    console.log('About to set lastUpdated element');
+    const lastUpdatedEl = document.getElementById('lastUpdated');
+    console.log('lastUpdatedEl:', lastUpdatedEl);
+    if (lastUpdatedEl) {
+        lastUpdatedEl.textContent = `${dateStr} ${timeStr}`;
+        console.log('Successfully set date to:', `${dateStr} ${timeStr}`);
+    } else {
+        console.error('lastUpdated element not found');
+    }
 }
 
 // Perform search
