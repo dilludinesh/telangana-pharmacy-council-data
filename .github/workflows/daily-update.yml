@@ -151,7 +151,7 @@ jobs:
         SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       run: |
         echo "☁️ Syncing data to Supabase cloud database..."
-        python scripts/sync_to_supabase.py
+        python -m tgpc sync
     
     - name: Commit and push changes
       if: steps.check_update.outputs.already_updated == 'false' && steps.changes.outputs.changes == 'true'
