@@ -307,7 +307,7 @@ function displayAnalytics(stats) {
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
 
-    const dateStr = `${dayName} ${dayNum}${monthName}${year}`;
+    const dateStr = `${dayNum}${monthName}${year}`;
     const timeStr = `${hours}:${minutes}`;
 
     console.log('About to set lastUpdated element');

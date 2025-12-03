@@ -81,16 +81,24 @@
 
 
 
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            width: max-content;
+        }
+
         .brand-text h1 {
             font-size: 1.5rem;
             font-weight: 700;
             color: #00cc66;
+            line-height: 1.2;
         }
 
         .brand-text p {
             font-size: 0.8125rem;
             color: #71717a;
             margin-top: 4px;
+            width: 100%;
         }
 
         .brand-text p .updated-text {
@@ -103,6 +111,7 @@
         .header-status {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 4px;
             padding: 4px 12px;
             border-radius: 10px;
@@ -112,6 +121,7 @@
             margin: 0;
             font-weight: normal;
             white-space: nowrap;
+            width: 100%;
         }
 
         .status-separator {
@@ -170,52 +180,29 @@
             transform: translate(-50%, -50%);
             width: 6px;
             height: 6px;
-            background: rgba(0, 204, 102, 0.3);
+            background: rgba(0, 204, 102, 0.6);
             border-radius: 50%;
             pointer-events: none;
         }
 
         .header-status.connected .status-dot::before {
-            animation: dotWave 3s ease-out infinite;
+            animation: dotWave 2.5s ease-out infinite;
         }
 
         .header-status.connected .status-dot::after {
-            animation: dotWave 3s ease-out 1.5s infinite;
-        }
-
-        .header-status.connecting .status-dot {
-            background: #dc2626;
-            animation: pulse 1s infinite;
-        }
-
-        .header-status.error .status-dot {
-            background: #ef4444;
-        }
-
-
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
+            animation: dotWave 2.5s ease-out 1.25s infinite;
         }
 
         @keyframes dotWave {
             0% {
                 width: 6px;
                 height: 6px;
-                opacity: 0.6;
+                opacity: 0.8;
             }
 
             100% {
-                width: 24px;
-                height: 24px;
+                width: 32px;
+                height: 32px;
                 opacity: 0;
             }
         }
