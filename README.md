@@ -1,15 +1,15 @@
-# Rx Registry Sync
+# TGPC Rx Registry
 
-Automated data synchronization and management system.
+Automated TGPC Rx Data Synchronisation and Management System.
 
-## Features
-- Daily data updates
-- Cloud synchronization
-- Automated health checks
-- Zero-maintenance architecture
+## ✅ Features
+- Daily Data Updates
+- Cloud Synchronisation
+- Automated Repository Health Checks
+- Zero-maintenance Architecture
 
-## Status
-System runs autonomously on a daily schedule.
+## ♻️ Status
+The system runs autonomously on a daily schedule.
 
 ## ⚖️ License & Disclaimer
 
