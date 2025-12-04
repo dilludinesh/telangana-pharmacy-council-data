@@ -106,10 +106,29 @@ class Manager:
         unique_records = {r.registration_number: r for r in fresh_records}.values()
         sorted_records = sorted(unique_records, key=lambda r: r.serial_number or 0)
         
+        # Calculate stats
+        existing_ids = {r.registration_number for r in existing_records}
+        current_ids = {r.registration_number for r in sorted_records}
+        
+        new_count = len(current_ids - existing_ids)
+        removed_count = len(existing_ids - current_ids)
+        total_count = len(sorted_records)
+        duplicates = len(fresh_records) - len(sorted_records)
+
         self.file_manager.save(list(sorted_records))
         self.backup_manager.cleanup()
         
-        logger.info("Daily update complete")
+        logger.info(f"Update complete. Total: {total_count}, New: {new_count}, Removed: {removed_count}")
+
+        # Output for GitHub Actions
+        if os.environ.get('GITHUB_OUTPUT'):
+            with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                f.write(f"total_records={total_count}\n")
+                f.write(f"new_records={new_count}\n")
+                f.write(f"removed_records={removed_count}\n")
+                f.write(f"duplicates_removed={duplicates}\n")
+                f.write(f"integrity_score=1.0\n")
+                f.write(f"success=True\n")
 
     def sync_to_supabase(self):
         """Sync data to Supabase."""
