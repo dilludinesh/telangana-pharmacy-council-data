@@ -107,18 +107,36 @@ class Manager:
         sorted_records = sorted(unique_records, key=lambda r: r.serial_number or 0)
         
         # Calculate stats
-        existing_ids = {r.registration_number for r in existing_records}
-        current_ids = {r.registration_number for r in sorted_records}
+        existing_map = {r.registration_number: r for r in existing_records}
+        current_map = {r.registration_number: r for r in sorted_records}
         
-        new_count = len(current_ids - existing_ids)
-        removed_count = len(existing_ids - current_ids)
+        existing_ids = set(existing_map.keys())
+        current_ids = set(current_map.keys())
+        
+        new_ids = current_ids - existing_ids
+        removed_ids = existing_ids - current_ids
+        common_ids = current_ids & existing_ids
+        
+        new_count = len(new_ids)
+        removed_count = len(removed_ids)
         total_count = len(sorted_records)
         duplicates = len(fresh_records) - len(sorted_records)
+        
+        # Detailed changes
+        new_details = [f"{current_map[i].registration_number} - {current_map[i].name}" for i in new_ids]
+        removed_details = [f"{existing_map[i].registration_number} - {existing_map[i].name}" for i in removed_ids]
+        
+        modified_count = 0
+        modified_details = []
+        for rid in common_ids:
+            if existing_map[rid] != current_map[rid]:
+                modified_count += 1
+                modified_details.append(f"{current_map[rid].registration_number} - {current_map[rid].name}")
 
         self.file_manager.save(list(sorted_records))
         self.backup_manager.cleanup()
         
-        logger.info(f"Update complete. Total: {total_count}, New: {new_count}, Removed: {removed_count}")
+        logger.info(f"Update complete. Total: {total_count}, New: {new_count}, Removed: {removed_count}, Modified: {modified_count}")
 
         # Output for GitHub Actions
         if os.environ.get('GITHUB_OUTPUT'):
@@ -126,9 +144,15 @@ class Manager:
                 f.write(f"total_records={total_count}\n")
                 f.write(f"new_records={new_count}\n")
                 f.write(f"removed_records={removed_count}\n")
+                f.write(f"modified_records={modified_count}\n")
                 f.write(f"duplicates_removed={duplicates}\n")
                 f.write(f"integrity_score=1.0\n")
                 f.write(f"success=True\n")
+                
+                # Output details as JSON strings (limit to top 50 to avoid overflow)
+                f.write(f"new_details={json.dumps(new_details[:50])}\n")
+                f.write(f"removed_details={json.dumps(removed_details[:50])}\n")
+                f.write(f"modified_details={json.dumps(modified_details[:50])}\n")
 
     def sync_to_supabase(self):
         """Sync data to Supabase."""

@@ -148,17 +148,55 @@ jobs:
     - name: Create update summary
       if: always()
       run: |
-        echo "## 📊 Daily TGPC Update Summary" >> $GITHUB_STEP_SUMMARY
+        # Parse details JSON
+        NEW_DETAILS='${{ steps.update.outputs.new_details }}'
+        REM_DETAILS='${{ steps.update.outputs.removed_details }}'
+        MOD_DETAILS='${{ steps.update.outputs.modified_details }}'
+        
+        echo "# ♻️ Daily Rx Update" >> $GITHUB_STEP_SUMMARY
+        echo "> **$(date '+%A, %d %B %Y')** • $(date '+%H:%M %Z')" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Date:** $(date '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-        echo "**Status:** ${{ steps.update.outputs.success == 'True' && '✅ Success' || '❌ Failed' }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Results" >> $GITHUB_STEP_SUMMARY
-        echo "- **Total Records:** ${{ steps.update.outputs.total_records }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **New Records:** ${{ steps.update.outputs.new_records }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Removed Records:** ${{ steps.update.outputs.removed_records }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Duplicates Removed:** ${{ steps.update.outputs.duplicates_removed }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Data Integrity Score:** ${{ steps.update.outputs.integrity_score }}" >> $GITHUB_STEP_SUMMARY
+        
+        # Use python to parse JSON and output lists
+        python -c "
+        import json
+        import os
+        
+        try:
+            new_recs = json.loads('$NEW_DETAILS')
+            rem_recs = json.loads('$REM_DETAILS')
+            mod_recs = json.loads('$MOD_DETAILS')
+            
+            has_changes = False
+            
+            if new_recs:
+                has_changes = True
+                print('### 🆕 New Additions')
+                for r in new_recs:
+                    print(f'- {r}')
+                print('')
+                
+            if mod_recs:
+                has_changes = True
+                print('### ✏️ Modifications')
+                for r in mod_recs:
+                    print(f'- {r}')
+                print('')
+                
+            if rem_recs:
+                has_changes = True
+                print('### 🗑️ Removals')
+                for r in rem_recs:
+                    print(f'- {r}')
+                print('')
+                
+            if not has_changes:
+                print('### ✅ No Changes')
+                print('All records are up to date.')
+                
+        except Exception as e:
+            print(f'Error parsing details: {e}')
+        " >> $GITHUB_STEP_SUMMARY
     
     - name: Notify on failure
       if: failure()
