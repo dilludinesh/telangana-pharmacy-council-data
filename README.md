@@ -32,7 +32,7 @@ Automated execution.
 
 This system is designed to run without supervision.
 
-- **Updates**: Runs daily (Mon-Fri).
+- **Updates**: Runs daily (Mon-Sun).
 - **Health**: Checks website weekly (Sun).
 - **Alerts**: GitHub will email you ONLY if something breaks.
 
