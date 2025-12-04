@@ -1,0 +1,17 @@
+name: Test Failure Email
+
+on:
+  push:
+    paths:
+      - '.github/workflows/test-email.yml'
+
+jobs:
+  trigger-email:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simulating a System Failure
+        run: |
+          echo "🚨 This is a TEST failure."
+          echo "If you are reading this in an email, the notification system is working!"
+          echo "You can safely ignore this error."
+          exit 1
