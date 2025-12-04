@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Simulating a System Failure
         run: |
-          echo "🚨 This is a TEST failure."
+          echo "🚨 This is a TEST failure (Run 2)."
           echo "If you are reading this in an email, the notification system is working!"
           echo "You can safely ignore this error."
           exit 1
