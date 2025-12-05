@@ -75,7 +75,7 @@ async function checkConnection() {
         const dateText = dateEl ? dateEl.textContent : 'Loading...';
 
         statusEl.className = 'header-status connecting';
-        statusEl.innerHTML = `<span class="status-dot"></span><span>Refreshing</span><span class="status-separator">|</span><span class="status-date" id="lastUpdated">${dateText}</span>`;
+        statusEl.innerHTML = `<span class="status-dot"></span><span>Busy</span><span class="status-separator">|</span><span class="status-date" id="lastUpdated">${dateText}</span>`;
 
         // Try a simple query to check connection
         const { data, error } = await supabase
