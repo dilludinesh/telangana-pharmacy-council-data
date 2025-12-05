@@ -295,12 +295,12 @@
         }
 
         .stat-card:nth-child(1) h3 {
-            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: #2563eb;
-            border-color: #2563eb;
+            /* Removed blue gradient to allow brand colors to show */
+            color: #71717a;
+        }
+
+        .stat-content h3 .brand-rx {
+            text-transform: none;
         }
 
         .stat-card:nth-child(2) h3 {
@@ -768,7 +768,7 @@
                 <div class="stat-card">
                     <div class="stat-header">
                         <div class="stat-content">
-                            <h3>Total Records</h3>
+                            <h3>Total <span class="brand-rx">Rx</span></h3>
                             <div class="stat-value" id="totalRecords">...</div>
                         </div>
                     </div>
