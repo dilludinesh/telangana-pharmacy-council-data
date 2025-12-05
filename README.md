@@ -12,7 +12,6 @@ Automated TGPC Rx Data Synchronisation and Management System.
 The system runs autonomously on a daily schedule.
 
 ## ⚖️ License & Disclaimer
-
 **NO LIABILITY**: The creator, the repository owner, the contributors, and the hosting platform (GitHub) assume **NO LIABILITY** and are **NOT RESPONSIBLE** for any lawsuits, damages, data loss, or legal consequences arising from the use, misuse, or existence of this repository.
 
 - **Code**: Licensed under the MIT License.
