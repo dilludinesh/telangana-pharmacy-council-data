@@ -153,7 +153,7 @@ jobs:
         REM_DETAILS='${{ steps.update.outputs.removed_details }}'
         MOD_DETAILS='${{ steps.update.outputs.modified_details }}'
         
-        echo "# ♻️ Daily Rx Update" >> $GITHUB_STEP_SUMMARY
+        echo "### ♻️ Rx Update" >> $GITHUB_STEP_SUMMARY
         echo "> **$(date '+%A, %d %B %Y')** • $(date '+%H:%M %Z')" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
@@ -163,36 +163,37 @@ jobs:
         import os
         
         try:
-            new_recs = json.loads('$NEW_DETAILS')
-            rem_recs = json.loads('$REM_DETAILS')
-            mod_recs = json.loads('$MOD_DETAILS')
+            # Handle potential empty strings by defaulting to empty list JSON
+            new_json = '$NEW_DETAILS' if '$NEW_DETAILS' else '[]'
+            rem_json = '$REM_DETAILS' if '$REM_DETAILS' else '[]'
+            mod_json = '$MOD_DETAILS' if '$MOD_DETAILS' else '[]'
+
+            new_recs = json.loads(new_json) or []
+            rem_recs = json.loads(rem_json) or []
+            mod_recs = json.loads(mod_json) or []
             
-            has_changes = False
-            
+            # New Additions
+            print(f'### 🆕 New Additions (+{len(new_recs)})')
             if new_recs:
-                has_changes = True
-                print('### 🆕 New Additions')
                 for r in new_recs:
                     print(f'- {r}')
-                print('')
-                
+            else:
+                pass # print('No new records.')
+            print('')
+            
+            # Modifications
+            print(f'### ✏️ Modifications (+{len(mod_recs)})')
             if mod_recs:
-                has_changes = True
-                print('### ✏️ Modifications')
                 for r in mod_recs:
                     print(f'- {r}')
-                print('')
+            print('')
                 
+            # Removals
+            print(f'### 🗑️ Removals (+{len(rem_recs)})')
             if rem_recs:
-                has_changes = True
-                print('### 🗑️ Removals')
                 for r in rem_recs:
                     print(f'- {r}')
-                print('')
-                
-            if not has_changes:
-                print('### ✅ No Changes')
-                print('All records are up to date.')
+            print('')
                 
         except Exception as e:
             print(f'Error parsing details: {e}')
