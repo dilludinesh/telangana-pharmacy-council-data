@@ -70,12 +70,7 @@ async function checkConnection() {
     const statusEl = document.getElementById('connectionStatus');
 
     try {
-        // Get current date text if it exists
-        const dateEl = document.getElementById('lastUpdated');
-        const dateText = dateEl ? dateEl.textContent : 'Loading...';
-
-        statusEl.className = 'header-status connecting';
-        statusEl.innerHTML = `<span class="status-dot"></span><span>Busy</span><span class="status-separator">|</span><span class="status-date" id="lastUpdated">${dateText}</span>`;
+        // statusEl is already set to 'Busy' in static HTML
 
         // Try a simple query to check connection
         const { data, error } = await supabase
@@ -86,12 +81,18 @@ async function checkConnection() {
         if (error) throw error;
 
         // Connected successfully
-        // Get date text again in case it changed while we were waiting
-        const currentDateEl = document.getElementById('lastUpdated');
-        const currentDateText = currentDateEl ? currentDateEl.textContent : dateText;
+        // Generate current date for display
+        const now = new Date();
+        const day = now.getDate().toString().padStart(2, '0');
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const month = months[now.getMonth()];
+        const year = now.getFullYear();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const dateText = `${day} ${month} ${year} ${hours}:${minutes}`;
 
         statusEl.className = 'header-status connected';
-        statusEl.innerHTML = `<span class="status-dot"></span><span>Live</span><span class="status-separator">|</span><span class="status-date" id="lastUpdated">${currentDateText}</span>`;
+        statusEl.innerHTML = `<span class="status-dot"></span><span class="status-text">Live</span><span class="status-separator">|</span><span class="status-date" id="lastUpdated">${dateText}</span>`;
 
     } catch (error) {
         console.error('Connection error:', error);
@@ -101,14 +102,14 @@ async function checkConnection() {
         const dateText = dateEl ? dateEl.textContent : 'Loading...';
 
         statusEl.className = 'header-status error';
-        statusEl.innerHTML = `<span class="status-dot"></span><span>Offline</span><span style="margin-left: 8px; color: inherit; font-weight: 500;" id="lastUpdated">${dateText}</span>`;
+        statusEl.innerHTML = `<span class="status-dot"></span><span class="status-text">Offline</span>`;
     }
 }
 
 // Load analytics with localStorage caching for instant display
 async function loadAnalytics() {
     const CACHE_KEY = 'tgpc_analytics';
-    const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+    const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 
     try {
         // Try to load from cache first
@@ -307,7 +308,7 @@ function displayAnalytics(stats) {
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
 
-    const dateStr = `${dayNum}${monthName}${year}`;
+    const dateStr = `${dayNum} ${monthName} ${year}`;
     const timeStr = `${hours}:${minutes}`;
 
     console.log('About to set lastUpdated element');
