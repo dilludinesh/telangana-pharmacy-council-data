@@ -94,6 +94,14 @@
             line-height: 1.2;
         }
 
+        .brand-rx {
+            color: #ef4444;
+        }
+
+        .brand-registry {
+            color: #808080;
+        }
+
         .brand-text p {
             font-size: 0.8125rem;
             color: #71717a;
@@ -113,7 +121,7 @@
             align-items: center;
             justify-content: center;
             gap: 4px;
-            padding: 4px 12px;
+            padding: 2px 8px;
             border-radius: 10px;
             font-size: 0.75rem;
             transition: all 0.3s;
@@ -782,9 +790,6 @@
         <section class="search-section">
             <div class="section-header">
                 <h2 class="section-title">Search Registry</h2>
-                <button class="btn btn-secondary" onclick="exportResults()">
-                    Export PDF
-                </button>
             </div>
 
             <div class="search-bar">
@@ -792,6 +797,7 @@
                     placeholder="Search by registration number, name, or father's name..." autocomplete="off">
                 <button class="btn btn-primary" onclick="performSearch()">Search</button>
                 <button class="btn btn-secondary" onclick="resetSearch()">Reset</button>
+                <button class="btn btn-secondary" onclick="exportResults()">Export PDF</button>
             </div>
 
             <div class="filters">
