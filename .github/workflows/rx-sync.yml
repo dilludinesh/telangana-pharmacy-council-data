@@ -14,7 +14,7 @@ on:
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
-  update-data:
+  rx-sync:
     runs-on: ubuntu-latest
     permissions:
       contents: write
