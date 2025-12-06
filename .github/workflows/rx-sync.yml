@@ -152,7 +152,7 @@ jobs:
         REM_DETAILS='${{ steps.update.outputs.removed_details }}'
         MOD_DETAILS='${{ steps.update.outputs.modified_details }}'
         
-        echo "### ♻️ Rx Update" >> $GITHUB_STEP_SUMMARY
+        echo "### ♻️ Rx Sync" >> $GITHUB_STEP_SUMMARY
         echo "> **$(date '+%A, %d %B %Y')** • $(date '+%H:%M %Z')" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
@@ -172,7 +172,7 @@ jobs:
             mod_recs = json.loads(mod_json) or []
             
             # New Additions
-            print(f'### 🆕 New Additions (+{len(new_recs)})')
+            print(f'#### 🆕 New Additions (+{len(new_recs)})')
             if new_recs:
                 for r in new_recs:
                     print(f'- {r}')
@@ -181,14 +181,14 @@ jobs:
             print('')
             
             # Modifications
-            print(f'### ✏️ Modifications (+{len(mod_recs)})')
+            print(f'#### ✏️ Modifications (+{len(mod_recs)})')
             if mod_recs:
                 for r in mod_recs:
                     print(f'- {r}')
             print('')
                 
             # Removals
-            print(f'### 🗑️ Removals (+{len(rem_recs)})')
+            print(f'#### 🗑️ Removals (+{len(rem_recs)})')
             if rem_recs:
                 for r in rem_recs:
                     print(f'- {r}')
