@@ -5,10 +5,8 @@ Handles data extraction, rate limiting, and parsing.
 
 import time
 import random
-import re
-from datetime import datetime
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass, asdict
+from typing import Optional
+from dataclasses import dataclass
 
 import requests
 from bs4 import BeautifulSoup
@@ -28,17 +26,16 @@ class PharmacistRecord:
     father_name: str
     category: str
     serial_number: Optional[int] = None
-    status: str = ""
-    gender: str = ""
-    validity_date: Optional[datetime] = None
-    photo_data: Optional[str] = None
-    education: List[Dict[str, str]] = None
-    work_experience: Dict[str, str] = None
 
     def to_dict(self):
-        data = asdict(self)
-        # Filter out empty fields to strictly match source availability
-        return {k: v for k, v in data.items() if v not in (None, "", [])}
+        """Convert to dictionary, strictly maintaining the 5-field schema."""
+        return {
+            "registration_number": self.registration_number,
+            "name": self.name,
+            "father_name": self.father_name,
+            "category": self.category,
+            "serial_number": self.serial_number
+        }
 
 # --- Rate Limiter ---
 
@@ -157,46 +154,3 @@ class Scraper:
         logger.info(f"Extracted {len(records)} records")
         return records
 
-    def extract_detailed_info(self, reg_no: str) -> Optional[PharmacistRecord]:
-        """Extract detailed info for a single pharmacist."""
-        try:
-            response = self._request("POST", self.urls['search'], data={
-                'registration_no': reg_no,
-                'submit': 'Submit'
-            })
-            
-            if 'No Records Found' in response.text:
-                return None
-
-            soup = BeautifulSoup(response.text, 'html.parser')
-            tables = soup.find_all('table')
-            
-            if not tables:
-                return None
-
-            # Parse main info
-            data = {'registration_number': reg_no}
-            main_rows = tables[0].find_all('tr')
-            if len(main_rows) >= 2:
-                headers = [th.get_text(strip=True).lower() for th in main_rows[0].find_all(['th', 'td'])]
-                cells = main_rows[1].find_all('td')
-                
-                for i, header in enumerate(headers):
-                    if i >= len(cells): break
-                    val = cells[i].get_text(strip=True)
-                    
-                    if 'name' in header and 'father' not in header: data['name'] = val
-                    elif 'father' in header: data['father_name'] = val
-                    elif 'category' in header: data['category'] = val
-                    elif 'status' in header: data['status'] = val
-                    elif 'gender' in header: data['gender'] = val
-                    elif 'validity' in header: 
-                        try:
-                            data['validity_date'] = datetime.strptime(val, '%d-%b-%Y')
-                        except: pass
-
-            return PharmacistRecord(**data)
-
-        except Exception as e:
-            logger.error(f"Failed to extract details for {reg_no}: {e}")
-            return None
