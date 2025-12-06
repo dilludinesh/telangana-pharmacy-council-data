@@ -60,7 +60,6 @@ jobs:
       id: update
       run: |
         echo "🔄 Starting daily TGPC data update during business hours..."
-        echo "🔄 Starting daily TGPC data update during business hours..."
         
         # Run the update via CLI
         python -m tgpc update

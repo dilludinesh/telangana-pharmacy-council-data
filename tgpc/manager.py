@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Tuple
+from dataclasses import asdict
 
 from supabase import create_client
 
@@ -180,3 +181,4 @@ class Manager:
             
         except Exception as e:
             logger.error(f"Sync failed: {e}")
+

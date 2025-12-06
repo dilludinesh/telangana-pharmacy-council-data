@@ -37,9 +37,8 @@ class PharmacistRecord:
 
     def to_dict(self):
         data = asdict(self)
-        if self.validity_date:
-            data['validity_date'] = self.validity_date.isoformat()
-        return data
+        # Filter out empty fields to strictly match source availability
+        return {k: v for k, v in data.items() if v not in (None, "", [])}
 
 # --- Rate Limiter ---
 
