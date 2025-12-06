@@ -1,0 +1,22 @@
+name: 🔒 Lock README
+
+on:
+  push:
+    paths:
+      - 'README.md'
+  pull_request:
+    paths:
+      - 'README.md'
+
+jobs:
+  enforce-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Block changes to README
+        run: |
+          echo "================================================================"
+          echo "❌ ACTION BLOCKED: README.md is locked."
+          echo "This file is set to read-only and cannot be modified."
+          echo "To unlock, you must first disable/remove this workflow."
+          echo "================================================================"
+          exit 1
